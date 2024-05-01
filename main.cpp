@@ -1,12 +1,5 @@
 /**
-This application displays a mesh in wireframe using "Modern" OpenGL 3.0+.
-The Mesh3D class now initializes a "vertex array" on the GPU to store the vertices
-	and faces of the mesh. To render, the Mesh3D object simply triggers the GPU to draw
-	the stored mesh data.
-We now use explicit vertex and fragment shaders instead of the default OpenGL implementations.
-	See "no_transform.vert" for a vertex shader that sets a vertex's clip-space coordinates
-		equal to its local-space coordinates.
-	See "all_green.frag" for a fragment shader that sets a pixel to green, always.
+This application renders a textured mesh that was loaded with Assimp.
 */
 
 #include <iostream>
@@ -16,11 +9,134 @@ We now use explicit vertex and fragment shaders instead of the default OpenGL im
 #include "Mesh3D.h"
 #include "Object3D.h"
 #include "AssimpImport.h"
-// You will need to add your own AssimpImport.cpp from HW 4 if you want to load
-// other meshes.
-
+#include "Animator.h"
 #include "ShaderProgram.h"
-#include "StbImage.h"
+
+/**
+ * @brief Defines a collection of objects that should be rendered with a specific shader program.
+ */
+struct Scene {
+	ShaderProgram defaultShader;
+	std::vector<Object3D> objects;
+	std::vector<Animator> animators;
+};
+
+/**
+ * @brief Constructs a shader program that renders textured meshes in the Phong reflection model.
+ * The shaders used here are incomplete; see their source codes.
+ * @return 
+ */
+ShaderProgram phongLighting() {
+	ShaderProgram program;
+	try {
+		program.load("../shaders/light_perspective.vert", "../shaders/lighting.frag");
+	}
+	catch (std::runtime_error& e) {
+		std::cout << "ERROR: " << e.what() << std::endl;
+		exit(1);
+	}
+	return program;
+}
+
+/**
+ * @brief Constructs a shader program that renders textured meshes without lighting.
+ */
+ShaderProgram textureMapping() {
+	ShaderProgram program;
+	try {
+		program.load("../shaders/texture_perspective.vert", "../shaders/texturing.frag");
+	}
+	catch (std::runtime_error& e) {
+		std::cout << "ERROR: " << e.what() << std::endl;
+		exit(1);
+	}
+	return program;
+}
+
+/**
+ * @brief Loads an image from the given path into an OpenGL texture.
+ */
+Texture loadTexture(const std::filesystem::path& path, const std::string& samplerName = "baseTexture") {
+	StbImage i;
+	i.loadFromFile(path.string());
+	return Texture::loadImage(i, samplerName);
+}
+
+/**
+ * @brief  Demonstrates loading a square, oriented as the "floor", with a manually-specified texture
+ * that does not come from Assimp.
+ * @return 
+ */
+Scene marbleSquare() {
+	std::vector<Texture> textures = {
+		loadTexture("../models/White_marble_03/Textures_4K/white_marble_03_4k_baseColor.tga", "baseTexture"),
+	};
+
+	auto mesh = Mesh3D::square(textures);
+	auto square = Object3D(std::vector<Mesh3D>{mesh});
+	square.grow(glm::vec3(5, 5, 5));
+	square.rotate(glm::vec3(-3.14159 / 4, 0, 0));
+	return Scene{
+		phongLighting(),
+		{square}
+	};
+}
+
+/**
+ * @brief Constructs a scene of the textured Stanford bunny.
+ */
+Scene bunny() {
+	auto bunny = assimpLoad("../models/bunny_textured.obj", true);
+	bunny.grow(glm::vec3(9, 9, 9));
+	bunny.move(glm::vec3(0.2, -1, 0));
+
+	return Scene{
+		phongLighting(),
+		{bunny}
+	};
+}
+
+/**
+ * @brief Constructs a scene of a tiger sitting in a boat, where the tiger is the child object
+ * of the boat.
+ * @return 
+ */
+Scene lifeOfPi() {
+	// This scene is more complicated; it has child objects, as well as animators.
+	auto boat = assimpLoad("../models/boat/boat.fbx", true);
+	boat.move(glm::vec3(0, -0.7, 0));
+	boat.grow(glm::vec3(0.01, 0.01, 0.01));
+	auto tiger = assimpLoad("../models/tiger/scene.gltf", true);
+	tiger.move(glm::vec3(0, -5, 10));
+	boat.addChild(std::move(tiger));
+	
+	// Because boat and tiger are local variables, they will be destroyed when this
+	// function terminates. To prevent that, we need to move them into a vector, and then
+	// move that vector as part of the return value.
+	std::vector<Object3D> objects;
+	objects.push_back(std::move(boat));
+	
+	// We want these animations to referenced the *moved* objects, which are no longer
+	// in the variables named "tiger" and "boat". "boat" is now in the "objects" list at
+	// index 0, and "tiger" is the index-1 child of the boat.
+	Animator animBoat;
+	animBoat.addAnimation(std::make_unique<RotationAnimation>(objects[0], 10, glm::vec3(0, 6.28, 0)));
+	Animator animTiger;
+	animTiger.addAnimation(std::make_unique<RotationAnimation>(objects[0].getChild(1), 10, glm::vec3(0, 0, 6.28)));
+
+	// The Animators will be destroyed when leaving this function, so we move them into
+	// a list to be returned.
+	std::vector<Animator> animators;
+	animators.push_back(std::move(animBoat));
+	animators.push_back(std::move(animTiger));
+
+	// Transfer ownership of the objects and animators back to the main.
+	return Scene {
+		textureMapping(),
+		std::move(objects),
+		std::move(animators)
+	};
+}
 
 int main() {
 	// Initialize the window and OpenGL.
@@ -30,44 +146,30 @@ int main() {
 	Settings.antialiasingLevel = 2;  // Request 2 levels of antialiasing
     Settings.majorVersion = 4;
     Settings.minorVersion = 1;
-	sf::Window window(sf::VideoMode{ 1000, 1000 }, "SFML Demo", sf::Style::Resize | sf::Style::Close, Settings);
+    Settings.attributeFlags = sf::ContextSettings::Attribute::Core;
+	sf::Window window(sf::VideoMode{ 1200, 800 }, "SFML Demo", sf::Style::Resize | sf::Style::Close, Settings);
 	gladLoadGL();
+	glEnable(GL_DEPTH_TEST);
 
-	// Load shaders and bind them for use.
-	ShaderProgram defaultShader;
-	try {
-		defaultShader.load(
-                "../shaders/textured_perspective.vert",
-                "../shaders/texture_mapped.frag");
-	}
-	catch (std::runtime_error& e) {
-		std::cout << "ERROR: " << e.what() << std::endl;
-		return 1;
-	}
+	// Initialize scene objects.
+	auto scene = lifeOfPi();
+	// In case you want to manipulate the scene objects directly by name.
+	auto& boat = scene.objects[0];
+	auto& tiger = boat.getChild(1);
 
-	// Inintialize scene objects.
+	auto cameraPosition = glm::vec3(0, 0, 5);
+	auto camera = glm::lookAt(cameraPosition, glm::vec3(0, 0, -1), glm::vec3(0, 1, 0));
+	auto perspective = glm::perspective(glm::radians(45.0), static_cast<double>(window.getSize().x) / window.getSize().y, 0.1, 100.0);
 
-	defaultShader.activate();
-	glm::mat4 camera = glm::lookAt(glm::vec3(0, 0, 0), glm::vec3(0, 0, -1), glm::vec3(0, 1, 0));
-	glm::mat4 perspective = glm::perspective(glm::radians(45.0), static_cast<double>(window.getSize().x) / window.getSize().y, 0.1, 100.0);
-	defaultShader.setUniform("view", camera);
-	defaultShader.setUniform("projection", perspective);
+	ShaderProgram& mainShader = scene.defaultShader;
+	mainShader.activate();
+	mainShader.setUniform("view", camera);
+	mainShader.setUniform("projection", perspective);
 
-	/*
-	auto bunny = assimpLoad("models/bunny_textured.obj", true);
-	bunny.move(glm::vec3(0.2, -1, -5));
-	bunny.grow(glm::vec3(9, 9, 9));
-	*/
-
-	/*
-	This draws the example from lecture: a triangle with a brick wall texture.
-	*/
-	StbImage texture;
-	texture.loadFromFile("../models/wall.jpg");
-	auto obj = Object3D(std::make_shared<Mesh3D>(Mesh3D::triangle(texture)));
-	obj.move(glm::vec3(0, 0, -3));
-	
 	// Ready, set, go!
+	for (auto& animator : scene.animators) {
+		animator.start();
+	}
 	bool running = true;
 	sf::Clock c;
 
@@ -79,17 +181,22 @@ int main() {
 				running = false;
 			}
 		}
+		
+		auto now = c.getElapsedTime();
+		auto diff = now - last;
+		auto diffSeconds = diff.asSeconds();
+		last = now;
+		for (auto& animator : scene.animators) {
+			animator.tick(diffSeconds);
+		}
 
 		// Clear the OpenGL "context".
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		obj.render(window, defaultShader);
+		// Render each object in the scene.
+		for (auto& o : scene.objects) {
+			o.render(window, mainShader);
+		}
 		window.display();
-
-
-		auto now = c.getElapsedTime();
-		auto diff = now - last;
-		std::cout << 1 / diff.asSeconds() << " FPS " << std::endl;
-		last = now;
 	}
 
 	return 0;

@@ -20,7 +20,6 @@ StbImage::~StbImage()
 
 void StbImage::loadFromFile(const std::string& filepath)
 {
-    stbi_set_flip_vertically_on_load(true);
     data = stbi_load(filepath.c_str(), &width, &height, &bpp, 4);
     if (data == nullptr)
         std::cerr << "Failed to load image!\n";
