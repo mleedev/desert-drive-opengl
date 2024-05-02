@@ -29,6 +29,8 @@ uniform vec3 directionalColor;
 // Location of the camera.
 uniform vec3 viewPos;
 
+uniform vec4 texNormalFader;
+
 float cosine;
 float lambert_factor;
 
@@ -61,8 +63,8 @@ void main() {
     cosine = dot(normalize(reflect_vector), normalize(-RelativeCamera));
     vec3 spec_factor = vec3(pow(max(cosine, 0), 1));
 
-    vec3 specularIntensity = vec3(vec4(spec_factor,1) * texture(specMap, TexCoord));
+    vec3 specularIntensity = vec3(vec4(spec_factor,1) * texture(specMap, TexCoord) * (vec4(1)-texNormalFader));
 
-    vec3 lightIntensity = ambientIntensity * 1 + diffuseIntensity * 1 + specularIntensity * 1;
-    FragColor = vec4(lightIntensity, 1) * texture(baseTexture, TexCoord);
+    vec3 lightIntensity = ambientIntensity * 0 + diffuseIntensity * 1 + specularIntensity * 1;
+    FragColor = vec4(lightIntensity, 1)  * (texture(baseTexture, TexCoord) * texNormalFader + (vec4(1)-texNormalFader));
 }

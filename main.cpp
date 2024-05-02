@@ -37,12 +37,14 @@ int main() {
 	mainShader.setUniform("projection", perspective);
     mainShader.setUniform("directionalLight", normalize(glm::vec3(-1,-1,-1)));
     mainShader.setUniform("ambientColor",glm::vec3(0.2,0.2,0.2));
+    mainShader.setUniform("texNormalFader",0.5f);
 	// Ready, set, go!
 	for (auto& animator : scene.animators) {
 		animator.start();
 	}
 	bool running = true;
 	sf::Clock c;
+    float counter = 0.0f;
 
 	auto last = c.getElapsedTime();
 	while (running) {
@@ -61,6 +63,10 @@ int main() {
 			animator.tick(diffSeconds);
 		}
 
+        counter += diff.asSeconds();
+
+        mainShader.setUniform("texNormalFader",glm::vec4((sin(counter)+1.0f)*0.5f));
+        mainShader.setUniform("directionalLight", normalize(glm::vec3(sin(counter*0.1),cos(counter*0.1),0)));
 		// Clear the OpenGL "context".
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		// Render each object in the scene.
