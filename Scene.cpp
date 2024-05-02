@@ -8,7 +8,8 @@
 Scene Scene::jeep() {
     auto jeep = assimpLoad("../models/mil_jeep_fbx/mil_jeep.fbx", true);
     jeep.move(glm::vec3(0, -1, 0));
-    jeep.grow(glm::vec3(0.01, 0.01, 0.01));
+    jeep.grow(glm::vec3(0.004, 0.004, 0.004));
+    jeep.rotate(glm::vec3(0.2, 1.0, 0));
     return Scene {
             ShaderProgram::phongLighting(),
             {jeep}

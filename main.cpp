@@ -22,7 +22,7 @@ int main() {
 	glEnable(GL_DEPTH_TEST);
 
 	// Initialize scene objects.
-	auto scene = Scene::lifeOfPi();
+	auto scene = Scene::jeep();
 
 	auto cameraPosition = glm::vec3(0, 0, 5);
 	auto camera = glm::lookAt(cameraPosition, glm::vec3(0, 0, -1), glm::vec3(0, 1, 0));
@@ -31,9 +31,10 @@ int main() {
 	ShaderProgram& mainShader = scene.defaultShader;
 	mainShader.activate();
 	mainShader.setUniform("view", camera);
-	mainShader.setUniform("projection", perspective);
+    mainShader.setUniform("projection", perspective);
     mainShader.setUniform("directionalLight", normalize(glm::vec3(-1,-1,-1)));
-    mainShader.setUniform("ambientColor",glm::vec3(0.2,0.2,0.2));
+    mainShader.setUniform("ambientColor",glm::vec3(0.3,0.3,0.3));
+    mainShader.setUniform("normalTexFader",0.5f);
     mainShader.setUniform("texNormalFader",0.5f);
 	// Ready, set, go!
 	for (auto& animator : scene.animators) {
