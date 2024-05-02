@@ -132,7 +132,7 @@ Scene lifeOfPi() {
 
 	// Transfer ownership of the objects and animators back to the main.
 	return Scene {
-		textureMapping(),
+            phongLighting(),
 		std::move(objects),
 		std::move(animators)
 	};
@@ -165,7 +165,8 @@ int main() {
 	mainShader.activate();
 	mainShader.setUniform("view", camera);
 	mainShader.setUniform("projection", perspective);
-
+    mainShader.setUniform("directionalLight", normalize(glm::vec3(-1,-1,-1)));
+    mainShader.setUniform("ambientColor",glm::vec3(0.2,0.2,0.2));
 	// Ready, set, go!
 	for (auto& animator : scene.animators) {
 		animator.start();

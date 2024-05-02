@@ -12,13 +12,16 @@ uniform mat4 model;
 out vec2 TexCoord;
 out vec3 Normal;
 out vec3 FragWorldPos;
+out vec3 RelativeCamera;
 
 void main() {
     // Transform the position to clip space.
     gl_Position = projection * view * model * vec4(vPosition, 1.0);
     TexCoord = vTexCoord;
     Normal = mat3(transpose(inverse(model))) * vNormal;
-    
+
+    FragWorldPos = vec3(model * vec4(vPosition, 1.0));
+    RelativeCamera = vec3(view * vec4(FragWorldPos,1));
     // TODO: transform the vertex position into world space, and assign it 
     // to FragWorldPos.
 }
