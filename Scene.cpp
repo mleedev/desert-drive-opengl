@@ -7,12 +7,20 @@
 
 Scene Scene::jeep() {
     auto jeep = assimpLoad("../models/mil_jeep_fbx/mil_jeep.fbx", true);
-    jeep.move(glm::vec3(0, -1, 0));
+    jeep.move(glm::vec3(0, -1.2, 0));
     jeep.grow(glm::vec3(0.004, 0.004, 0.004));
-    jeep.rotate(glm::vec3(0.2, 1.0, 0));
+
+    std::vector<Object3D> objects;
+    objects.push_back(std::move(jeep));
+    Animator animJeep;
+    animJeep.addAnimation(std::make_unique<RotationAnimation>(objects[0], 10, glm::vec3(0, 5.5, 0)));
+    std::vector<Animator> animators;
+    animators.push_back(std::move(animJeep));
+
     return Scene {
             ShaderProgram::phongLighting(),
-            {jeep}
+            std::move(objects),
+            std::move(animators)
     };
 }
 
