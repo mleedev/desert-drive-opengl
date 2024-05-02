@@ -139,3 +139,35 @@ void ShaderProgram::setUniform(const std::string& uniformName, const glm::mat4& 
 {
     glUniformMatrix4fv(glGetUniformLocation(m_programId, uniformName.c_str()), 1, false, &value[0][0]);
 }
+
+/**
+ * @brief Constructs a shader program that renders textured meshes in the Phong reflection model.
+ * The shaders used here are incomplete; see their source codes.
+ * @return
+ */
+ShaderProgram ShaderProgram::phongLighting() {
+    ShaderProgram program;
+    try {
+        program.load("../shaders/light_perspective.vert", "../shaders/lighting.frag");
+    }
+    catch (std::runtime_error& e) {
+        std::cout << "ERROR: " << e.what() << std::endl;
+        exit(1);
+    }
+    return program;
+}
+
+/**
+ * @brief Constructs a shader program that renders textured meshes without lighting.
+ */
+ShaderProgram ShaderProgram::textureMapping() {
+    ShaderProgram program;
+    try {
+        program.load("../shaders/texture_perspective.vert", "../shaders/texturing.frag");
+    }
+    catch (std::runtime_error& e) {
+        std::cout << "ERROR: " << e.what() << std::endl;
+        exit(1);
+    }
+    return program;
+}

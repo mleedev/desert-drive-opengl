@@ -19,4 +19,7 @@ public:
 	void setUniform(const std::string& uniformName, const glm::mat2& value);
 	void setUniform(const std::string& uniformName, const glm::mat3& value);
 	void setUniform(const std::string& uniformName, const glm::mat4& value);
+
+    static ShaderProgram phongLighting();
+    static ShaderProgram textureMapping();
 };

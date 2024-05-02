@@ -32,4 +32,13 @@ struct Texture {
 
 		return Texture{ texId, samplerName };
 	}
+
+    /**
+     * @brief Loads an image from the given path into an OpenGL texture.
+     */
+    static Texture loadTexture(const std::filesystem::path& path, const std::string& samplerName = "baseTexture") {
+        StbImage i;
+        i.loadFromFile(path.string());
+        return Texture::loadImage(i, samplerName);
+    }
 };
