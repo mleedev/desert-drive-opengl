@@ -23,9 +23,6 @@ int main() {
 
 	// Initialize scene objects.
 	auto scene = Scene::lifeOfPi();
-	// In case you want to manipulate the scene objects directly by name.
-	auto& boat = scene.objects[0];
-	auto& tiger = boat.getChild(1);
 
 	auto cameraPosition = glm::vec3(0, 0, 5);
 	auto camera = glm::lookAt(cameraPosition, glm::vec3(0, 0, -1), glm::vec3(0, 1, 0));
