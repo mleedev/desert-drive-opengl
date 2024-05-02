@@ -3,6 +3,18 @@
 #include "ShaderProgram.h"
 #include "Texture.h"
 
+
+
+Scene Scene::jeep() {
+    auto jeep = assimpLoad("../models/mil_jeep_fbx/mil_jeep.fbx", true);
+    jeep.move(glm::vec3(0, -1, 0));
+    jeep.grow(glm::vec3(0.01, 0.01, 0.01));
+    return Scene {
+            ShaderProgram::phongLighting(),
+            {jeep}
+    };
+}
+
 /**
  * @brief Constructs a scene of a tiger sitting in a boat, where the tiger is the child object
  * of the boat.
@@ -39,7 +51,7 @@ Scene Scene::lifeOfPi() {
 
     // Transfer ownership of the objects and animators back to the main.
     return Scene {
-            ShaderProgram::textureMapping(),
+            ShaderProgram::phongLighting(),
             std::move(objects),
             std::move(animators)
     };
@@ -77,17 +89,4 @@ Scene marbleSquare() {
             ShaderProgram::phongLighting(),
             {square}
     };
-}
-
-Scene::Scene(ShaderProgram &&defaultShader, std::vector<Object3D> &&objects, std::vector<Animator> &&animators)
-    : defaultShader(defaultShader),
-      objects(std::move(objects)),
-      animators(std::move(animators))
-{
-
-}
-
-Scene::Scene(ShaderProgram shader, const Object3D& object)
-{
-
 }

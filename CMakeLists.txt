@@ -12,6 +12,7 @@ add_executable(mattsquared_graphics
         AssimpImport.cpp
         StbImage.cpp
         Animator.cpp
+        Scene.cpp
 )
 
 find_package(SFML COMPONENTS system window REQUIRED)

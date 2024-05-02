@@ -19,7 +19,19 @@ std::vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, c
 		mat->GetTexture(type, i, &name);
         std::string correctedPath = name.C_Str();
         std::replace(correctedPath.begin(), correctedPath.end(), '\\', '/');
-		std::filesystem::path texPath = modelPath.parent_path() / correctedPath;
+
+        // Remove the leading "../../../../" from the path
+        const std::string prefix = "../../../../";
+        if (correctedPath.rfind(prefix, 0) == 0) {
+            correctedPath.erase(0, prefix.size());
+        }
+
+        std::filesystem::path texPath = modelPath.parent_path() / correctedPath;
+
+        // If the texture file does not exist at the given path, try loading it from a path relative to the FBX file
+        if (!std::filesystem::exists(texPath)) {
+            texPath = modelPath.parent_path() / "../models/mil_jeep_fbx/textures/MILITARY JEEP/MILITARY JEEP/_000_Pickup/Pickup_Material" / correctedPath;
+        }
 
 		auto existing = loadedTextures.find(texPath);
 		if (existing != loadedTextures.end()) {
