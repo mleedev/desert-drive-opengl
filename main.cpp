@@ -34,7 +34,7 @@ int main() {
 	mainShader.activate();
 	mainShader.setUniform("view", camera);
     mainShader.setUniform("projection", perspective);
-    mainShader.setUniform("directionalLight", normalize(glm::vec3(-1,-1,-1)));
+    mainShader.setUniform("directionalLight", normalize(glm::vec3(0,-1,0)));
     mainShader.setUniform("ambientColor",glm::vec3(0.3,0.3,0.3));
     mainShader.setUniform("texNormalFader",1);
     // Ready, set, go!
@@ -65,13 +65,16 @@ int main() {
         counter += diff.asSeconds();
 
         //mainShader.setUniform("texNormalFader",glm::vec4((sin(counter)+1.0f)*0.5f));
-        mainShader.setUniform("directionalLight", normalize(glm::vec3(sin(counter*0.1),cos(counter*0.1),0)));
+        //mainShader.setUniform("directionalLight", normalize(glm::vec3(sin(counter*0.1),cos(counter*0.1),0)));
 		// Clear the OpenGL "context".
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		// Render each object in the scene.
 		for (auto& o : scene.objects) {
             //o.rotateChildren(0);
-            o.applyBoneTransforms();
+            //for (int i = 0; i < 100; i++) {
+                o.rotateBone(1, glm::vec3(0,0.01,0));
+            //}
+            //o.applyBoneTransforms();
 			o.render(window, mainShader);
 		}
         // Display the rendered frame

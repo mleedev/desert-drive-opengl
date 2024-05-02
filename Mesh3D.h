@@ -82,7 +82,11 @@ public:
 
     void printBones() const;
 
-    void applyBoneTransforms();
+    void applyBoneTransforms(glm::vec3 scale);
 
     void setVertices(const std::vector<Vertex3D> &vertices);
+
+    const glm::mat4 getBoneMatrix(int index) const;
+
+    void setBoneMatrix(int index, const glm::mat4 &boneMatrix);
 };

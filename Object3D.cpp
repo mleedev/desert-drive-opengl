@@ -137,11 +137,49 @@ void Object3D::printHierarchy() {
  * @param parentMatrix the model matrix of this object's parent in the model hierarchy.
  */
  void Object3D::applyBoneTransforms() {
+     this->applyBoneTransformsRecursive(m_scale);
+ }
+
+ void Object3D::applyBoneTransformsRecursive(glm::vec3 parentScale) {
+    glm::vec3 trueScale = parentScale * m_scale;
     for (auto& mesh : m_meshes) {
-        mesh.applyBoneTransforms();
+        mesh.applyBoneTransforms(trueScale);
+    }
+    for (auto& child : m_children) {
+        child.applyBoneTransformsRecursive(trueScale);
     }
  }
-const glm::vec3 extraRotation(0,1,0);
+
+void Object3D::rotateBone(int boneIndex, const glm::vec3& rotation) {
+    // For each mesh in the object
+    for (Mesh3D& mesh : m_meshes) {
+        // Get the bone matrix
+        if (boneIndex < mesh.getBoneCount()) {
+            glm::mat4 boneMatrix = mesh.getBoneMatrix(boneIndex);
+            // Get the position from the boneMatrix
+            glm::vec3 position = glm::vec3(boneMatrix[3]);
+
+// Create a translation matrix with the negative of the position
+            glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), -position);
+
+// Subtract the position from the boneMatrix
+            glm::mat4 boneMatrixWithoutPosition = boneMatrix;
+
+            // Apply the rotation to the bone matrix
+            boneMatrixWithoutPosition = glm::rotate(boneMatrixWithoutPosition, glm::radians(rotation.x), glm::vec3(1, 0, 0));
+            boneMatrixWithoutPosition = glm::rotate(boneMatrixWithoutPosition, glm::radians(rotation.y), glm::vec3(0, 1, 0));
+            boneMatrixWithoutPosition = glm::rotate(boneMatrixWithoutPosition, glm::radians(rotation.z), glm::vec3(0, 0, 1));
+            ;;boneMatrixWithoutPosition = translationMatrix * boneMatrixWithoutPosition;
+            // Set the updated bone matrix back to the mesh
+            mesh.setBoneMatrix(boneIndex, boneMatrixWithoutPosition);
+        }
+    }
+
+    for (auto& child : m_children) {
+        child.rotateBone(boneIndex, rotation);
+    }
+}
+
 void Object3D::renderRecursive(sf::Window& window, ShaderProgram& shaderProgram, const glm::mat4& parentMatrix) const {
 	// This object's true model matrix is the combination of its parent's matrix and the object's matrix.
 
@@ -149,12 +187,6 @@ void Object3D::renderRecursive(sf::Window& window, ShaderProgram& shaderProgram,
 	shaderProgram.setUniform("model", trueModel);
 	// Render each mesh in the object.
 	for (auto& mesh : m_meshes) {
-        const std::vector<glm::mat4>& boneMatrices = mesh.getBoneMatrices();
-        for (size_t i = 0; i < boneMatrices.size(); i++) {
-            std::string uniformName = "bones[" + std::to_string(i) + "]";
-            shaderProgram.setUniform(uniformName, boneMatrices[i]);
-        }
-
 		mesh.render(window, shaderProgram);
 	}
 	// Render the children of the object.

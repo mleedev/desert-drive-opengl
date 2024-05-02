@@ -20,15 +20,15 @@ out vec3 RelativeCamera;
 
 
 void main() {
-    mat4 boneTransform = bones[max(vBoneIDs.x,0)] * vWeights.x +
-    bones[max(vBoneIDs.y,0)] * vWeights.y +
-    bones[max(vBoneIDs.z,0)] * vWeights.z +
-    bones[max(vBoneIDs.w,0)] * vWeights.w;
+    mat4 boneTransform = bones[max(vBoneIDs[0],0)] * vWeights[0] +
+    bones[max(vBoneIDs[1],0)] * vWeights[1] +
+    bones[max(vBoneIDs[2],0)] * vWeights[2] +
+    bones[max(vBoneIDs[3],0)] * vWeights[3];
 
-    vec4 adjustedPosition = vec4(vPosition,1.0); //vec4(vPosition, 1.0) * boneTransform;
-    vec3 normalL = vNormal;//mat3(boneTransform) * vNormal;
+    vec4 adjustedPosition = vec4(vPosition, 1.0);
+    vec3 normalL = mat3(inverse(boneTransform)) * vNormal;
     // Transform the position to clip space.
-    gl_Position = projection * view * model * adjustedPosition;
+    gl_Position = projection * view * model * inverse(boneTransform) * adjustedPosition;
     TexCoord = vTexCoord;
     Normal = mat3(transpose(inverse(model))) * normalL; //vNormal
 

@@ -7,7 +7,8 @@
 
 Scene Scene::jeep() {
     auto jeep = assimpLoad("../models/mil_jeep_fbx/mil_jeep.fbx", true);
-    jeep.move(glm::vec3(0, -1.2, 0));
+    jeep.move(glm::vec3(0, -4.2, -25));
+    jeep.setScale(glm::vec3(0.005,0.005,0.005));
     //jeep.grow(glm::vec3(0.004, 0.004, 0.004));
     jeep.printHierarchy();
     std::vector<Object3D> objects;

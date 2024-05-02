@@ -65,6 +65,6 @@ void main() {
 
     vec3 specularIntensity = vec3(vec4(spec_factor,1) * texture(specMap, TexCoord));
 
-    vec3 lightIntensity = ambientIntensity * 0 + diffuseIntensity * 0.5 + specularIntensity * 1;
+    vec3 lightIntensity = ambientIntensity * 1 + diffuseIntensity * 0.5 + specularIntensity * 1;
     FragColor = vec4(lightIntensity, 1)  * texture(baseTexture, TexCoord); //* texNormalFader + (vec4(1)-texNormalFader));
 }

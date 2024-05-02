@@ -64,7 +64,7 @@ void Mesh3D::addTexture(Texture texture)
 	m_textures.push_back(texture);
 }
 
-void Mesh3D::applyBoneTransforms() {
+void Mesh3D::applyBoneTransforms(glm::vec3 modelScale) {
     // For each vertex in the mesh
     for (Vertex3D& vertex : m_vertices) {
         // Calculate the final transform for this vertex
@@ -77,14 +77,21 @@ void Mesh3D::applyBoneTransforms() {
         }
 
         // Apply the final transform to the vertex position
-        glm::vec3 m_Position = finalTransform * glm::vec4(glm::vec3(vertex.x,vertex.y,vertex.z), 1.0f);
-        vertex.x = m_Position.x;
-        vertex.y = m_Position.y;
-        vertex.z = m_Position.z;
+        //glm::vec3 m_Position = finalTransform * glm::vec4(glm::vec3(vertex.x,vertex.y,vertex.z), 1.0f);
+        //vertex.x = m_Position.x;
+        //vertex.y = m_Position.y;
+        //vertex.z = m_Position.z;
     }
 }
 
 void Mesh3D::render(sf::Window& window, ShaderProgram& program) const {
+
+    const std::vector<glm::mat4>& boneMatrices = m_boneMatrices;
+    for (size_t i = 0; i < boneMatrices.size(); i++) {
+        std::string uniformName = "bones[" + std::to_string(i) + "]";
+        program.setUniform(uniformName, boneMatrices[i]);
+    }
+
     // Activate the mesh's vertex array.
 	glBindVertexArray(m_vao);
 	for (auto i = 0; i < m_textures.size(); i++) {
@@ -103,6 +110,22 @@ void Mesh3D::render(sf::Window& window, ShaderProgram& program) const {
 // New methods for bone support
 const std::vector<glm::mat4>& Mesh3D::getBoneMatrices() const {
     return m_boneMatrices;
+}
+
+const glm::mat4 Mesh3D::getBoneMatrix(int index) const {
+    return m_boneMatrices[index];
+}
+
+void Mesh3D::setBoneMatrix(int index, const glm::mat4& boneMatrix) {
+    // Check if the index is within the range of the vector
+    if (index >= 0 && index < m_boneMatrices.size()) {
+        // Create a new vector with the modified bone matrix
+        std::vector<glm::mat4> newBoneMatrices = m_boneMatrices;
+        newBoneMatrices[index] = boneMatrix;
+
+        // Replace the old m_boneMatrices with the new one
+        m_boneMatrices = newBoneMatrices;
+    }
 }
 
 int Mesh3D::getBoneCount() const {

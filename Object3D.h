@@ -71,4 +71,10 @@ public:
     void rotateChildren(float i);
 
     void applyBoneTransforms();
+
+    void applyBoneTransformsRecursive();
+
+    void applyBoneTransformsRecursive(glm::vec3 parentScale);
+
+    void rotateBone(int boneIndex, const glm::vec3 &rotation);
 };
