@@ -51,6 +51,18 @@ std::vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, c
 	return textures;
 }
 
+glm::mat4 convertAssimpMatrixToGLM(const aiMatrix4x4t<float>& from)
+{
+    glm::mat4 to;
+
+    to[0][0] = from.a1; to[1][0] = from.a2; to[2][0] = from.a3; to[3][0] = from.a4;
+    to[0][1] = from.b1; to[1][1] = from.b2; to[2][1] = from.b3; to[3][1] = from.b4;
+    to[0][2] = from.c1; to[1][2] = from.c2; to[2][2] = from.c3; to[3][2] = from.c4;
+    to[0][3] = from.d1; to[1][3] = from.d2; to[2][3] = from.d3; to[3][3] = from.d4;
+
+    return to;
+}
+
 Mesh3D fromAssimpMesh(const aiMesh* mesh, const aiScene* scene, const std::filesystem::path& modelPath,
 	std::unordered_map<std::filesystem::path, Texture,PathHash>& loadedTextures) {
 	std::vector<Vertex3D> vertices;
@@ -76,6 +88,25 @@ Mesh3D fromAssimpMesh(const aiMesh* mesh, const aiScene* scene, const std::files
 		faces.push_back(mesh->mFaces[i].mIndices[1]);
 		faces.push_back(mesh->mFaces[i].mIndices[2]);
 	}
+    std::vector<glm::mat4> bones;
+    bones.reserve(mesh->mNumBones*sizeof(glm::mat4));
+    for (size_t i = 0; i < mesh->mNumBones; i++) {
+        auto* bone = mesh->mBones[i];
+        std::cout<<"Bone "<<i<<": "<<bone->mName.C_Str()<<" // "<<"\n";
+        bones.push_back(convertAssimpMatrixToGLM(bone->mOffsetMatrix));
+        for (size_t j = 0; j < bone->mNumWeights; j++) {
+            auto& weight = bone->mWeights[j];
+            auto& vertex = vertices[weight.mVertexId];
+            for (int k = 0; k < 4; k++) {
+                if (vertex.m_boneIDs[k] < 0) {
+                    vertex.m_boneIDs[k] = i;
+                    vertex.m_weights[k] = weight.mWeight;
+                    break;
+                }
+            }
+        }
+    }
+
 
 	std::vector<Texture> textures = {};
 	if (mesh->mMaterialIndex >= 0)
@@ -96,7 +127,10 @@ Mesh3D fromAssimpMesh(const aiMesh* mesh, const aiScene* scene, const std::files
 	}
 
 	auto m = Mesh3D(std::move(vertices), std::move(faces), std::move(textures));
-	return m;
+	m.setBoneMatrices(bones);
+    m.setVertices(vertices);
+    m.printBones();
+    return m;
 }
 
 
@@ -175,9 +209,11 @@ Object3D processAssimpNode(aiNode* node, const aiScene* scene,
 		}
 	}
 	auto parent = Object3D(std::move(meshes), baseTransform);
+    parent.setName(node->mName.C_Str());
 
 	for (auto i = 0; i < node->mNumChildren; i++) {
 		Object3D child = processAssimpNode(node->mChildren[i], scene, modelPath, loadedTextures);
+        child.setName(node->mName.C_Str());
 		parent.addChild(std::move(child));
 	}
 

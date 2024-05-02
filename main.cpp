@@ -3,10 +3,12 @@ This application renders a textured mesh that was loaded with Assimp.
 */
 
 #include <glad/glad.h>
+#include <iostream>
 
 #include "Mesh3D.h"
 #include "ShaderProgram.h"
 #include "Scene.h"
+#include "objectHelper.h"
 
 int main() {
 	// Initialize the window and OpenGL.
@@ -34,9 +36,8 @@ int main() {
     mainShader.setUniform("projection", perspective);
     mainShader.setUniform("directionalLight", normalize(glm::vec3(-1,-1,-1)));
     mainShader.setUniform("ambientColor",glm::vec3(0.3,0.3,0.3));
-    mainShader.setUniform("normalTexFader",0.5f);
-    mainShader.setUniform("texNormalFader",0.5f);
-	// Ready, set, go!
+    mainShader.setUniform("texNormalFader",1);
+    // Ready, set, go!
 	for (auto& animator : scene.animators) {
 		animator.start();
 	}
@@ -58,19 +59,22 @@ int main() {
 		auto diffSeconds = diff.asSeconds();
 		last = now;
 		for (auto& animator : scene.animators) {
-			animator.tick(diffSeconds);
+			//animator.tick(diffSeconds);
 		}
 
         counter += diff.asSeconds();
 
-        mainShader.setUniform("texNormalFader",glm::vec4((sin(counter)+1.0f)*0.5f));
+        //mainShader.setUniform("texNormalFader",glm::vec4((sin(counter)+1.0f)*0.5f));
         mainShader.setUniform("directionalLight", normalize(glm::vec3(sin(counter*0.1),cos(counter*0.1),0)));
 		// Clear the OpenGL "context".
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		// Render each object in the scene.
 		for (auto& o : scene.objects) {
+            //o.rotateChildren(0);
+            o.applyBoneTransforms();
 			o.render(window, mainShader);
 		}
+        // Display the rendered frame
 		window.display();
 	}
 

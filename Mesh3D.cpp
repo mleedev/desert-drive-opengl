@@ -8,10 +8,9 @@ using glm::mat4;
 using glm::vec4;
 
 Mesh3D::Mesh3D(std::vector<Vertex3D>&& vertices, std::vector<uint32_t>&& faces,
-	Texture texture) 
+	Texture texture)
 	: Mesh3D(std::move(vertices), std::move(faces), std::vector<Texture>{texture}) {
 }
-
 Mesh3D::Mesh3D(std::vector<Vertex3D>&& vertices, std::vector<uint32_t>&& faces, std::vector<Texture>&& textures)
  : m_vertexCount(vertices.size()), m_faceCount(faces.size()), m_textures(textures) {
 
@@ -43,6 +42,13 @@ Mesh3D::Mesh3D(std::vector<Vertex3D>&& vertices, std::vector<uint32_t>&& faces, 
 	glVertexAttribPointer(2, 2, GL_FLOAT, false, sizeof(Vertex3D), (void*)24);
 	glEnableVertexAttribArray(2);
 
+    // Attribute 3 is for bone IDs (assuming it's an ivec4 at the end of Vertex3D structure)
+    glEnableVertexAttribArray(3);
+    glVertexAttribIPointer(3, 4, GL_INT, sizeof(Vertex3D), (void*)(sizeof(float) * 8)); // Adjust the offset as per your Vertex3D structure
+
+    // Attribute 4 is for bone weights (assuming it's a vec4 at the end of Vertex3D structure)
+    glEnableVertexAttribArray(4);
+    glVertexAttribPointer(4, 4, GL_FLOAT, false, sizeof(Vertex3D), (void*)(sizeof(float) * 12)); // Adjust the offset as per your Vertex3D structure
 	// Generate a second buffer, to store the indices of each triangle in the mesh.
 	uint32_t ebo;
 	glGenBuffers(1, &ebo);
@@ -58,8 +64,28 @@ void Mesh3D::addTexture(Texture texture)
 	m_textures.push_back(texture);
 }
 
+void Mesh3D::applyBoneTransforms() {
+    // For each vertex in the mesh
+    for (Vertex3D& vertex : m_vertices) {
+        // Calculate the final transform for this vertex
+        glm::mat4 finalTransform = glm::mat4(0.0f);
+        for (int i = 0; i < 4; i++) {
+            if (vertex.m_boneIDs[i] >= 0) {
+                // Add the weighted bone transform to the final transform
+                finalTransform += m_boneMatrices[vertex.m_boneIDs[i]] * vertex.m_weights[i];
+            }
+        }
+
+        // Apply the final transform to the vertex position
+        glm::vec3 m_Position = finalTransform * glm::vec4(glm::vec3(vertex.x,vertex.y,vertex.z), 1.0f);
+        vertex.x = m_Position.x;
+        vertex.y = m_Position.y;
+        vertex.z = m_Position.z;
+    }
+}
+
 void Mesh3D::render(sf::Window& window, ShaderProgram& program) const {
-	// Activate the mesh's vertex array.
+    // Activate the mesh's vertex array.
 	glBindVertexArray(m_vao);
 	for (auto i = 0; i < m_textures.size(); i++) {
 		program.setUniform(m_textures[i].samplerName, i);
@@ -72,6 +98,39 @@ void Mesh3D::render(sf::Window& window, ShaderProgram& program) const {
 	// Deactivate the mesh's vertex array and texture.
 	glBindVertexArray(0);
 	glBindTexture(GL_TEXTURE_2D, 0);
+
+}
+// New methods for bone support
+const std::vector<glm::mat4>& Mesh3D::getBoneMatrices() const {
+    return m_boneMatrices;
+}
+
+int Mesh3D::getBoneCount() const {
+    return m_boneCount;
+}
+
+void Mesh3D::setBoneMatrices(const std::vector<glm::mat4>& boneMatrices) {
+    m_boneMatrices = boneMatrices;
+    m_boneCount = boneMatrices.size();
+}
+
+void Mesh3D::setVertices(const std::vector<Vertex3D>& vertices) {
+    m_vertices = vertices;
+}
+
+void Mesh3D::printBones() const {
+    std::cout<<"Printing bones \n";
+    for (size_t i = 0; i < m_boneMatrices.size(); i++) {
+        std::cout << "Bone " << i << ":\n";
+        const glm::mat4& matrix = m_boneMatrices[i];
+        for (int row = 0; row < 4; row++) {
+            for (int col = 0; col < 4; col++) {
+                std::cout << matrix[col][row] << ' ';
+            }
+            std::cout << '\n';
+        }
+        std::cout << '\n';
+    }
 }
 
 Mesh3D Mesh3D::square(const std::vector<Texture> &textures) {

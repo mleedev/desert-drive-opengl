@@ -113,16 +113,48 @@ void Object3D::render(sf::Window& window, ShaderProgram& shaderProgram) const {
 	renderRecursive(window, shaderProgram, glm::mat4(1));
 }
 
+void Object3D::rotateChildren(float i) {
+    //std::cout << "Lvl: "<<i<<" // Model Children: " << this->numberOfChildren() << "";
+
+    for (auto& child : this->m_children) {
+        child.rotate(glm::vec3(0.0005, 0.0005, 0.0005));
+        child.rotateChildren(i+1.0);
+       // std::cout<<"<-"<<child.getName()<<"-";
+    }
+    std::cout<<"\n";
+}
+
+void Object3D::printHierarchy() {
+    std::cout << "" << this->getName() << "[";
+    for (auto& child : m_children) {
+        child.printHierarchy();
+    }
+    std::cout << "],";
+}
+
 /**
  * @brief Renders the object and its children, recursively.
  * @param parentMatrix the model matrix of this object's parent in the model hierarchy.
  */
+ void Object3D::applyBoneTransforms() {
+    for (auto& mesh : m_meshes) {
+        mesh.applyBoneTransforms();
+    }
+ }
+const glm::vec3 extraRotation(0,1,0);
 void Object3D::renderRecursive(sf::Window& window, ShaderProgram& shaderProgram, const glm::mat4& parentMatrix) const {
 	// This object's true model matrix is the combination of its parent's matrix and the object's matrix.
+
 	glm::mat4 trueModel = parentMatrix * m_modelMatrix;
 	shaderProgram.setUniform("model", trueModel);
 	// Render each mesh in the object.
 	for (auto& mesh : m_meshes) {
+        const std::vector<glm::mat4>& boneMatrices = mesh.getBoneMatrices();
+        for (size_t i = 0; i < boneMatrices.size(); i++) {
+            std::string uniformName = "bones[" + std::to_string(i) + "]";
+            shaderProgram.setUniform(uniformName, boneMatrices[i]);
+        }
+
 		mesh.render(window, shaderProgram);
 	}
 	// Render the children of the object.

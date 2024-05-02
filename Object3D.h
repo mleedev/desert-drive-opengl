@@ -66,4 +66,9 @@ public:
 	void render(sf::Window& window, ShaderProgram& shaderProgram) const;
 	void renderRecursive(sf::Window& window, ShaderProgram& shaderProgram, const glm::mat4& parentMatrix) const;
 
+    void printHierarchy();
+
+    void rotateChildren(float i);
+
+    void applyBoneTransforms();
 };

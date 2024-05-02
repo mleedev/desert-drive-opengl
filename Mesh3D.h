@@ -17,6 +17,9 @@ struct Vertex3D {
 	float_t u;
 	float_t v;
 
+    int m_boneIDs[4] = {-1, -1, -1, -1};
+    float m_weights[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+
 	Vertex3D(float_t px, float_t py, float_t pz, float_t normX, float_t normY, float_t normZ,
 		float_t texU, float_t texV) :
 		x(px), y(py), z(pz), nx(normX), ny(normY), nz(normZ), u(texU), v(texV) {}
@@ -32,6 +35,11 @@ private:
 	std::vector<Texture> m_textures;
 	size_t m_vertexCount;
 	size_t m_faceCount;
+
+    // New members for bone support
+    std::vector<glm::mat4> m_boneMatrices;
+    std::vector<Vertex3D> m_vertices;
+    int m_boneCount;
 
 public:
 	Mesh3D() = delete;
@@ -65,5 +73,16 @@ public:
 	 * @brief Renders the mesh to the given context.
 	 */
 	void render(sf::Window& window, ShaderProgram& program) const;
-	
+
+    int getBoneCount() const;
+
+    void setBoneMatrices(const std::vector<glm::mat4> &boneMatrices);
+
+    const std::vector<glm::mat4> &getBoneMatrices() const;
+
+    void printBones() const;
+
+    void applyBoneTransforms();
+
+    void setVertices(const std::vector<Vertex3D> &vertices);
 };

@@ -61,10 +61,10 @@ void main() {
 
     vec3 reflect_vector = reflect(directionalLight, normalize(newNormal));
     cosine = dot(normalize(reflect_vector), normalize(-RelativeCamera));
-    vec3 spec_factor = vec3(pow(max(cosine, 0), 1));
+    vec3 spec_factor = vec3(pow(max(cosine, 0), 2));
 
-    vec3 specularIntensity = vec3(vec4(spec_factor,1) * texture(specMap, TexCoord) * (vec4(1)-texNormalFader));
+    vec3 specularIntensity = vec3(vec4(spec_factor,1) * texture(specMap, TexCoord));
 
-    vec3 lightIntensity = ambientIntensity * 0 + diffuseIntensity * 1 + specularIntensity * 1;
-    FragColor = vec4(lightIntensity, 1)  * (texture(baseTexture, TexCoord) * texNormalFader + (vec4(1)-texNormalFader));
+    vec3 lightIntensity = ambientIntensity * 0 + diffuseIntensity * 0.5 + specularIntensity * 1;
+    FragColor = vec4(lightIntensity, 1)  * texture(baseTexture, TexCoord); //* texNormalFader + (vec4(1)-texNormalFader));
 }

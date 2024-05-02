@@ -13,6 +13,8 @@ add_executable(mattsquared_graphics
         StbImage.cpp
         Animator.cpp
         Scene.cpp
+        objectHelper.h
+        objectHelper.cpp
 )
 
 find_package(SFML COMPONENTS system window REQUIRED)
