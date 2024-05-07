@@ -44,7 +44,7 @@ vec4 shininess;
 vec3 _pl_intensity;
 //float _pl_color;
 //vec3 _pl_color;
-
+/*
 mat4 dirLight = mat4(
 0,-1,0,0, //Position (Direction for directional lights);
 0.2,0.2,0.2,0, //Color
@@ -66,7 +66,8 @@ mat4 spotLight = mat4(
 0,0,1,0 //LookAt (For spotlights)
 );
 //
-mat4 lights[3] = mat4[](dirLight, pointLight, spotLight);
+*/
+uniform mat4 lights[10]; //= mat4[](dirLight, pointLight, spotLight);
 
 
 float calculateSpotlightBrightness(vec3 lightPos, vec3 lightLookVec, vec3 fragWorldPos, float cutoffAngle, float falloff) {
@@ -97,6 +98,7 @@ float calculateSpotlightBrightness(vec3 lightPos, vec3 lightLookVec, vec3 fragWo
 }
 
 //void calculatePointlight(vec3 position, float radius, vec3 color, int lightType, vec3 lightLookVec, float cutoffAngle) {
+
 void calculatePointLight(mat4 light) {
     vec3 position = light[0].xyz;
     vec3 color = light[1].xyz;
@@ -128,14 +130,15 @@ void calculatePointLight(mat4 light) {
     } else if (lightType == 1) {
         light_intensity = vec3(1 - pow(min(distance/radius, 1), 2));
     } else if (lightType == 2) {
-        vec3 lightToFrag = normalize(FragWorldPos - position);
+        vec3 lightToFrag = normalize(position - FragWorldPos);
 
         // Calculate the cosine of the angle between the light direction and the direction to the fragment
         float cosAngle = dot(lightLookVec, lightToFrag);
 
         // Calculate the cosine of the cutoff angle
         float cosCutoff = cos(radians(cutoffAngle));
-        light_intensity = vec3(pow(cosAngle - cosCutoff, 2)) * vec3(1 - pow(min(distance/radius, 1), 2));;
+        float smoothCutoff = abs(cosAngle)/cosCutoff;
+        light_intensity = vec3(clamp(pow(cosAngle - cosCutoff, 2),0,1)) * vec3(1 - pow(min(distance/radius, 1), 2));
         // If the fragment is outside the light's cone, return 0
         if (abs(cosAngle) < cosCutoff) {
             light_intensity = vec3(0);
@@ -163,7 +166,7 @@ void main() {
 
     shininess = texture(specMap, TexCoord);
     _pl_intensity = vec3(0);
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 10; i++) {
         if (lights[i][2][0] == 0) {
             break;
         }

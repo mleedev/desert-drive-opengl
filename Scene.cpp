@@ -14,18 +14,52 @@ Scene Scene::jeep() {
     lightSource.setPosition(glm::vec3(-2,1,0));
     lightSource.grow(glm::vec3(0.01,0.01,0.01));
 
+    glm::mat4 dirLight = glm::mat4(
+            0,-1,0,0, //Position (Direction for directional lights);
+            0.2,0.2,0.2,0, //Color
+            1,1,10,0, //LightType, Range, Cuttoff Angle (For spotlights)
+            0,0,0,0 //LookAt (For spotlights)
+    );
+
+    glm::mat4 pointLight = glm::mat4(
+            -2,1,0,0, //Position
+            0,0,1,0, //Color
+            2,5,0,0, //LightType, Range, Cuttoff Angle (For spotlights)
+            0,0,0,0 //LookAt (For spotlights)
+    );
+
+    glm::mat4 spotLight = glm::mat4(
+            1,0,5,0, //Position
+            0.8,0.8,0.8,0, //Color
+            3,15,9,0, //LightType, Range, Cuttoff Angle (For spotlights)
+            0,0,1,0 //LookAt (For spotlights)
+    );
+
+    glm::mat4 pointLight2 = glm::mat4(
+            2,1,-4,0, //Position
+            1,0,0,0, //Color
+            2,10,0,0, //LightType, Range, Cuttoff Angle (For spotlights)
+            0,0,0,0 //LookAt (For spotlights)
+    );
+
     std::vector<Object3D> objects;
     objects.push_back(std::move(jeep));
     objects.push_back(std::move(lightSource));
-    Animator animJeep;
-    animJeep.addAnimation(std::make_unique<RotationAnimation>(objects[0], 10, glm::vec3(0, 5.5, 0)));
+    std::vector<DynamicLight> lights;
+    lights.push_back(std::move(DynamicLight(dirLight)));
+    lights.push_back(std::move(DynamicLight(pointLight)));
+    lights.push_back(std::move(DynamicLight(spotLight)));
+    lights.push_back(std::move(DynamicLight(pointLight2)));
+    //Animator animJeep;
+    //animJeep.addAnimation(std::make_unique<RotationAnimation>(objects[0], 10, glm::vec3(0, 5.5, 0)));
     std::vector<Animator> animators;
-    animators.push_back(std::move(animJeep));
+    //animators.push_back(std::move(animJeep));
 
     return Scene {
             ShaderProgram::phongLighting(),
             std::move(objects),
-            std::move(animators)
+            std::move(animators),
+            std::move(lights)
     };
 }
 
@@ -67,7 +101,8 @@ Scene Scene::lifeOfPi() {
     return Scene {
             ShaderProgram::phongLighting(),
             std::move(objects),
-            std::move(animators)
+            std::move(animators),
+            {}
     };
 }
 
