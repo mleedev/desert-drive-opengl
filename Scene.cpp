@@ -10,8 +10,13 @@ Scene Scene::jeep() {
     jeep.move(glm::vec3(0, -1.2, 0));
     jeep.grow(glm::vec3(0.004, 0.004, 0.004));
 
+    auto lightSource = assimpLoad("../models/tiger/scene.gltf", true);
+    lightSource.setPosition(glm::vec3(-2,1,0));
+    lightSource.grow(glm::vec3(0.01,0.01,0.01));
+
     std::vector<Object3D> objects;
     objects.push_back(std::move(jeep));
+    objects.push_back(std::move(lightSource));
     Animator animJeep;
     animJeep.addAnimation(std::make_unique<RotationAnimation>(objects[0], 10, glm::vec3(0, 5.5, 0)));
     std::vector<Animator> animators;

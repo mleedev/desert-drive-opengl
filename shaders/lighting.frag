@@ -42,6 +42,86 @@ vec3 spec_factor;
 vec3 sampledNormal;
 vec3 newNormal;
 
+vec4 shininess;
+
+vec3 _pl_intensity;
+//float _pl_color;
+//vec3 _pl_color;
+
+
+float calculateSpotlightBrightness(vec3 lightPos, vec3 lightLookVec, vec3 fragWorldPos, float cutoffAngle, float falloff) {
+    // Calculate the direction from the light to the fragment
+    vec3 lightToFrag = normalize(fragWorldPos - lightPos);
+
+    // Calculate the cosine of the angle between the light direction and the direction to the fragment
+    float cosAngle = dot(lightLookVec, lightToFrag);
+
+    // Calculate the cosine of the cutoff angle
+    float cosCutoff = cos(radians(cutoffAngle));
+
+    // If the fragment is outside the light's cone, return 0
+    if (cosAngle < cosCutoff) {
+        return 0.0;
+    }
+
+    // Calculate the distance from the light to the fragment
+    float distance = length(fragWorldPos - lightPos);
+
+    // Calculate the attenuation (i.e., how much the light diminishes with distance)
+    float attenuation = 1.0 / (1.0 + falloff * pow(distance, 2));
+
+    // The brightness is the product of the attenuation and the amount of light the fragment receives based on its angle to the light
+    float brightness = attenuation * pow(cosAngle - cosCutoff, 2);
+
+    return brightness;
+}
+
+void calculatePointlight(vec3 position, float radius, vec3 color, int lightType, vec3 lightLookVec, float cutoffAngle) {
+
+    if (lightType == 0) { // Direcitonal light becomes a direction rather than a position
+        position = FragWorldPos - position;
+    }
+
+    vec3 light_vector = position - FragWorldPos;
+    float distance = length(light_vector);
+
+    //Diffuse intensity
+    float cosine = dot(newNormal, normalize(light_vector));
+    float lamber_factor = max(cosine, 0);
+    vec3 diffuseIntensity = vec3(lamber_factor);
+
+    //Specular intensity
+    vec3 view_vector = RelativeCamera - FragWorldPos;
+    vec3 reflect_vector = reflect(-light_vector, newNormal);
+    cosine = dot(normalize(reflect_vector), normalize(view_vector));
+    float spec = pow(max(cosine, 0), 3) * shininess.x;
+
+    vec3 light_intensity;
+    if (lightType == 0) {
+        light_intensity = vec3(1);
+    } else if (lightType == 1) {
+        light_intensity = vec3(1 - pow(min(distance/radius, 1), 2));
+    } else if (lightType == 2) {
+        vec3 lightToFrag = normalize(FragWorldPos - position);
+
+        // Calculate the cosine of the angle between the light direction and the direction to the fragment
+        float cosAngle = dot(lightLookVec, lightToFrag);
+
+        // Calculate the cosine of the cutoff angle
+        float cosCutoff = cos(radians(cutoffAngle));
+        light_intensity = vec3(pow(cosAngle - cosCutoff, 2)) * vec3(1 - pow(min(distance/radius, 1), 2));;
+        // If the fragment is outside the light's cone, return 0
+        if (abs(cosAngle) < cosCutoff) {
+            light_intensity = vec3(0);
+        }
+
+    }
+
+
+
+    _pl_intensity = _pl_intensity + light_intensity * (diffuseIntensity + spec) * color;// + spec_factor);// + specularIntensity); //* color;
+}
+
 void main() {
     // TODO: using the lecture notes, compute ambientIntensity, diffuseIntensity, 
     // and specularIntensity.
@@ -51,20 +131,14 @@ void main() {
     sampledNormal = sampledNormal * 2.0 - 1.0;
 
     // Use the converted color as your normal.
-    vec3 newNormal = normalize(sampledNormal * 0.5 + Normal * 0.5);
+    newNormal = normalize(sampledNormal * 0.5 + Normal * 0.5);
 
-    float cosine = dot(newNormal, -directionalLight);
-    float lambert_factor = max(cosine, 0);
-
-    vec3 ambientIntensity = ambientColor; //* material.x;
-    vec3 diffuseIntensity = vec3(lambert_factor); //material.y * vec3(1) *
-
-    vec3 reflect_vector = reflect(directionalLight, normalize(newNormal));
-    cosine = dot(normalize(reflect_vector), normalize(-RelativeCamera));
-    vec3 spec_factor = vec3(pow(max(cosine, 0), 1));
-
-    vec3 specularIntensity = vec3(vec4(spec_factor,1) * texture(specMap, TexCoord) * (vec4(1)-texNormalFader));
-
-    vec3 lightIntensity = ambientIntensity * 0 + diffuseIntensity * 1 + specularIntensity * 1;
-    FragColor = vec4(lightIntensity, 1)  * (texture(baseTexture, TexCoord) * texNormalFader + (vec4(1)-texNormalFader));
+    shininess = texture(specMap, TexCoord);
+    _pl_intensity = vec3(0);
+    calculatePointlight(vec3(0,-1,0), 5, vec3(0.2,0.2,0.2), 0, vec3(0,0,0), 0);
+    calculatePointlight(vec3(-2,1,0), 4, vec3(0,0,1), 1, vec3(0,0,0), 0);
+    calculatePointlight(vec3(2,1,0), 4, vec3(1,0,0), 1, vec3(0,0,0), 0);
+    calculatePointlight(vec3(1,0,5), 20, vec3(1,1,1), 2, normalize(vec3(0,0,1)), 5);
+    vec3 lightIntensity = _pl_intensity;//ambientIntensity * 0.001 + diffuseIntensity * 0.001 + specularIntensity * 0.001 + _pl_intensity; //+ _pl_intensity;
+    FragColor = vec4(lightIntensity, 1)  * (texture(baseTexture, TexCoord));
 }
