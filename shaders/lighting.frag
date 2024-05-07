@@ -7,7 +7,6 @@ layout (location=0) out vec4 FragColor;
 in vec2 TexCoord;
 in vec3 Normal;
 in vec3 FragWorldPos;
-in vec3 RelativeCamera;
 
 // Uniforms: MUST BE PROVIDED BY THE APPLICATION.
 
@@ -29,8 +28,6 @@ uniform vec3 directionalColor;
 // Location of the camera.
 uniform vec3 viewPos;
 
-uniform vec4 texNormalFader;
-
 float cosine;
 float lambert_factor;
 
@@ -47,6 +44,29 @@ vec4 shininess;
 vec3 _pl_intensity;
 //float _pl_color;
 //vec3 _pl_color;
+
+mat4 dirLight = mat4(
+0,-1,0,0, //Position (Direction for directional lights);
+0.2,0.2,0.2,0, //Color
+1,1,10,0, //LightType, Range, Cuttoff Angle (For spotlights)
+0,0,0,0 //LookAt (For spotlights)
+);
+
+mat4 pointLight = mat4(
+-2,1,0,0, //Position
+0,0,1,0, //Color
+2,5,0,0, //LightType, Range, Cuttoff Angle (For spotlights)
+0,0,0,0 //LookAt (For spotlights)
+);
+
+mat4 spotLight = mat4(
+1,0,5,0, //Position
+1,1,1,0, //Color
+3,20,5,0, //LightType, Range, Cuttoff Angle (For spotlights)
+0,0,1,0 //LookAt (For spotlights)
+);
+//
+mat4 lights[3] = mat4[](dirLight, pointLight, spotLight);
 
 
 float calculateSpotlightBrightness(vec3 lightPos, vec3 lightLookVec, vec3 fragWorldPos, float cutoffAngle, float falloff) {
@@ -76,8 +96,14 @@ float calculateSpotlightBrightness(vec3 lightPos, vec3 lightLookVec, vec3 fragWo
     return brightness;
 }
 
-void calculatePointlight(vec3 position, float radius, vec3 color, int lightType, vec3 lightLookVec, float cutoffAngle) {
-
+//void calculatePointlight(vec3 position, float radius, vec3 color, int lightType, vec3 lightLookVec, float cutoffAngle) {
+void calculatePointLight(mat4 light) {
+    vec3 position = light[0].xyz;
+    vec3 color = light[1].xyz;
+    float lightType = light[2].x - 1;
+    float radius = light[2].y;
+    float cutoffAngle = light[2].z;
+    vec3 lightLookVec = light[3].xyz;
     if (lightType == 0) { // Direcitonal light becomes a direction rather than a position
         position = FragWorldPos - position;
     }
@@ -91,7 +117,7 @@ void calculatePointlight(vec3 position, float radius, vec3 color, int lightType,
     vec3 diffuseIntensity = vec3(lamber_factor);
 
     //Specular intensity
-    vec3 view_vector = RelativeCamera - FragWorldPos;
+    vec3 view_vector = viewPos - FragWorldPos;
     vec3 reflect_vector = reflect(-light_vector, newNormal);
     cosine = dot(normalize(reflect_vector), normalize(view_vector));
     float spec = pow(max(cosine, 0), 3) * shininess.x;
@@ -133,12 +159,23 @@ void main() {
     // Use the converted color as your normal.
     newNormal = normalize(sampledNormal * 0.5 + Normal * 0.5);
 
+    //Light Test//
+
     shininess = texture(specMap, TexCoord);
     _pl_intensity = vec3(0);
-    calculatePointlight(vec3(0,-1,0), 5, vec3(0.2,0.2,0.2), 0, vec3(0,0,0), 0);
-    calculatePointlight(vec3(-2,1,0), 4, vec3(0,0,1), 1, vec3(0,0,0), 0);
-    calculatePointlight(vec3(2,1,0), 4, vec3(1,0,0), 1, vec3(0,0,0), 0);
-    calculatePointlight(vec3(1,0,5), 20, vec3(1,1,1), 2, normalize(vec3(0,0,1)), 5);
+    for (int i = 0; i < 3; i++) {
+        if (lights[i][2][0] == 0) {
+            break;
+        }
+        calculatePointLight(lights[i]);
+    }
+    //calculatePointLight(dirLight);
+    //calculatePointLight(pointLight);
+    //calculatePointLight(spotLight);
+    //calculatePointlight(vec3(0,-1,0), 5, vec3(0.2,0.2,0.2), 0, vec3(0,0,0), 0);
+    //calculatePointlight(vec3(-2,1,0), 4, vec3(0,0,1), 1, vec3(0,0,0), 0);
+    //calculatePointlight(vec3(2,1,0), 4, vec3(1,0,0), 1, vec3(0,0,0), 0);
+    //calculatePointlight(vec3(1,0,5), 20, vec3(1,1,1), 2, normalize(vec3(0,0,1)), 5);
     vec3 lightIntensity = _pl_intensity;//ambientIntensity * 0.001 + diffuseIntensity * 0.001 + specularIntensity * 0.001 + _pl_intensity; //+ _pl_intensity;
     FragColor = vec4(lightIntensity, 1)  * (texture(baseTexture, TexCoord));
 }
