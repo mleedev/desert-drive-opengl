@@ -10,13 +10,20 @@ Scene Scene::jeep() {
     jeep.move(glm::vec3(0, -1.2, 0));
     jeep.grow(glm::vec3(0.004, 0.004, 0.004));
 
+    std::vector<Texture> groundtex = {Texture::loadTexture("../models/concrete.png","baseTexture")};
+    //std::vector<Mesh3D> ground = {Mesh3D::square(groundtex)};
+    Object3D map = Object3D({Mesh3D::square(groundtex)});//assimpLoad("../models/racetrack/arena.obj", true);
+    map.grow(glm::vec3(100,100,100));
+    map.move(glm::vec3(0,-1.2,0));
+    map.rotate(glm::vec3(glm::radians(90.0f),0,0));
+
     auto lightSource = assimpLoad("../models/tiger/scene.gltf", true);
     lightSource.setPosition(glm::vec3(-2,1,0));
     lightSource.grow(glm::vec3(0.01,0.01,0.01));
 
     glm::mat4 dirLight = glm::mat4(
-            0,-1,0,0, //Position (Direction for directional lights);
-            0.2,0.2,0.2,0, //Color
+            0.5,-1,0,0, //Position (Direction for directional lights);
+            1,1,1,0, //Color
             1,1,10,0, //LightType, Range, Cuttoff Angle (For spotlights)
             0,0,0,0 //LookAt (For spotlights)
     );
@@ -31,7 +38,7 @@ Scene Scene::jeep() {
     glm::mat4 spotLight = glm::mat4(
             1,0,5,0, //Position
             0.8,0.8,0.8,0, //Color
-            3,15,9,0, //LightType, Range, Cuttoff Angle (For spotlights)
+            3,70,11,0, //LightType, Range, Cuttoff Angle (For spotlights)
             0,0,1,0 //LookAt (For spotlights)
     );
 
@@ -45,6 +52,7 @@ Scene Scene::jeep() {
     std::vector<Object3D> objects;
     objects.push_back(std::move(jeep));
     objects.push_back(std::move(lightSource));
+    objects.push_back(std::move(map));
     std::vector<DynamicLight> lights;
     lights.push_back(std::move(DynamicLight(dirLight)));
     lights.push_back(std::move(DynamicLight(pointLight)));

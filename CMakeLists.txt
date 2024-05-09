@@ -15,6 +15,10 @@ add_executable(mattsquared_graphics
         Scene.cpp
         DynamicLight.cpp
         DynamicLight.h
+        UserInput.cpp
+        UserInput.h
+        Vehicle.cpp
+        Vehicle.h
 )
 
 find_package(SFML COMPONENTS system window REQUIRED)

@@ -8,6 +8,8 @@ This application renders a textured mesh that was loaded with Assimp.
 #include "Mesh3D.h"
 #include "ShaderProgram.h"
 #include "Scene.h"
+#include "UserInput.h"
+#include "Vehicle.h"
 
 int main() {
 	// Initialize the window and OpenGL.
@@ -47,13 +49,18 @@ int main() {
 	sf::Clock c;
     float counter = 0.0f;
 
+    UserInput input;
+    Vehicle jeep(scene.objects[0],input);
+
 	auto last = c.getElapsedTime();
 	while (running) {
 		sf::Event ev;
 		while (window.pollEvent(ev)) {
 			if (ev.type == sf::Event::Closed) {
 				running = false;
-			}
+			} else {
+                input.processInput(ev);
+            }
 		}
 		
 		auto now = c.getElapsedTime();
@@ -63,10 +70,16 @@ int main() {
 		for (auto& animator : scene.animators) {
 			//animator.tick(diffSeconds);
 		}
+        //Jeep code
+        jeep.Update(diffSeconds);
+        cameraPosition = jeep.rearCamera;
+        camera = glm::lookAt(cameraPosition, jeep.frontLookat, glm::vec3(0, 1, 0));
+        mainShader.setUniform("view", camera);
+        //scene.objects[0].move(glm::vec3(input.sideInput,0,input.forwardInput)*diffSeconds*1.0f);
         //Some test code to move a spotlight around
         glm::vec3 lightPos = glm::vec3(sin(counter)*4,0+sin(counter*0.1234)*0.3,cos(counter)*4);
-        scene.lights[2].setPosition(lightPos); //Moves the spotlight around
-        scene.lights[2].setDirection(-glm::normalize(lightPos));
+        scene.lights[2].setPosition(jeep.headlightPos); //Moves the spotlight around
+        scene.lights[2].setDirection(jeep.direction);
         scene.lights[2].updateUniforms(mainShader); //Call this whenever you change the light's properties
         scene.objects[1].setPosition(lightPos); //Moves the tiger model to the light position
         counter += diff.asSeconds();
