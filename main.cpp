@@ -79,7 +79,7 @@ int main() {
         //Some test code to move a spotlight around
         glm::vec3 lightPos = glm::vec3(sin(counter)*4,0+sin(counter*0.1234)*0.3,cos(counter)*4);
         scene.lights[2].setPosition(jeep.headlightPos); //Moves the spotlight around
-        scene.lights[2].setDirection(jeep.direction);
+        scene.lights[2].setDirection(normalize(jeep.direction - glm::vec3(0,0.2,0)));
         scene.lights[2].updateUniforms(mainShader); //Call this whenever you change the light's properties
         scene.objects[1].setPosition(lightPos); //Moves the tiger model to the light position
         counter += diff.asSeconds();

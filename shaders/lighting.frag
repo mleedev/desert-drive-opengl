@@ -69,7 +69,7 @@ mat4 spotLight = mat4(
 */
 uniform mat4 lights[10]; //= mat4[](dirLight, pointLight, spotLight);
 //void calculatePointlight(vec3 position, float radius, vec3 color, int lightType, vec3 lightLookVec, float cutoffAngle) {
-
+float sceneBrightness = 2;
 void calculatePointLight(mat4 light) {
     vec3 position = light[0].xyz;
     vec3 color = light[1].xyz;
@@ -85,15 +85,17 @@ void calculatePointLight(mat4 light) {
     float distance = length(light_vector);
 
     //Diffuse intensity
-    float cosine = dot(newNormal, normalize(light_vector));
-    float lamber_factor = max(cosine, 0);
-    vec3 diffuseIntensity = vec3(lamber_factor);
+    float cosine = dot(normalize(newNormal), normalize(light_vector));
+    float angleDist = acos(cosine);
+    float lamber_factor = 1-clamp(angleDist/radians(90),0,1);//min(max(cosine, 0),1);
+    //float lamber_factor = min(max(cosine, 0),1);
+    vec3 diffuseIntensity = vec3(lamber_factor);//vec3(lamber_factor);
 
     //Specular intensity
     vec3 view_vector = viewPos - FragWorldPos;
     vec3 reflect_vector = reflect(-light_vector, newNormal);
     cosine = dot(normalize(reflect_vector), normalize(view_vector));
-    float spec = pow(max(cosine, 0), 3) * shininess.x;
+    float spec = pow(max(cosine, 0), 3) * shininess.x * 0;
 
     vec3 light_intensity;
     if (lightType == 0) {
@@ -102,13 +104,16 @@ void calculatePointLight(mat4 light) {
         light_intensity = vec3(1 - pow(min(distance/radius, 1), 2));
     } else if (lightType == 2) {
         vec3 lightToFrag = normalize(FragWorldPos - position);
-
         // Calculate the cosine of the angle between the light direction and the direction to the fragment
         float cosAngle = dot(normalize(lightLookVec), lightToFrag);
         // Calculate the cosine of the cutoff angle
-        float cosCutoff = cos(radians(cutoffAngle));
-        float smoothCutoff = abs(cosAngle)/cosCutoff;
-        light_intensity = vec3(1 - pow(min(distance/radius, 1), 2))*clamp(cosAngle,0,1);//vec3(clamp(pow(cosAngle - cosCutoff, 2),0,1)) *
+        //float cosCutoff = cos(radians(cutoffAngle));
+        //float smoothCutoff = abs(cosAngle)/cosCutoff;
+
+        float dotProduct = dot(lightToFrag, lightLookVec);
+        float angleDist = acos(dotProduct);
+
+        light_intensity = vec3(1 - pow(min(distance/radius, 1), 2))*(1-clamp(angleDist/radians(cutoffAngle),0,1));//vec3(clamp(pow(cosAngle - cosCutoff, 2),0,1)) *
         // If the fragment is outside the light's cone, return 0
         if (abs(cosAngle) < 0) {
             light_intensity = vec3(0);
@@ -130,7 +135,7 @@ void main() {
     sampledNormal = sampledNormal * 2.0 - 1.0;
 
     // Use the converted color as your normal.
-    newNormal = normalize(sampledNormal * 0.5 + Normal * 0.5);
+    newNormal = Normal;//normalize(sampledNormal * 0.5 + Normal * 0.5);
 
     //Light Test//
 
@@ -150,6 +155,7 @@ void main() {
     //calculatePointlight(vec3(2,1,0), 4, vec3(1,0,0), 1, vec3(0,0,0), 0);
     //calculatePointlight(vec3(1,0,5), 20, vec3(1,1,1), 2, normalize(vec3(0,0,1)), 5);
     vec3 lightIntensity = _pl_intensity;//ambientIntensity * 0.001 + diffuseIntensity * 0.001 + specularIntensity * 0.001 + _pl_intensity; //+ _pl_intensity;
+    lightIntensity = lightIntensity / sceneBrightness;
     FragColor = vec4(lightIntensity, 1)  * (texture(baseTexture, TexCoord));
     //FragColor = vec4(1,1,1,1);
 }
