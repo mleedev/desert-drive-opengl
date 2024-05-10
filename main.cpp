@@ -40,17 +40,25 @@ int main() {
 	for (auto& animator : scene.animators) {
 		animator.start();
 	}
+
+    UserInput input;
+
+    auto l1 = DynamicLight(glm::mat4(1.0f));
+    auto l2 = DynamicLight(glm::mat4(1.0f));
+    auto l3 = DynamicLight(glm::mat4(1.0f));
+    scene.lights.push_back(l1);
+    scene.lights.push_back(l2);
+    scene.lights.push_back(l3);
+    Vehicle jeep(scene.objects[0], input, scene.lights[1], scene.lights[2], scene.lights[3]);
     int uIndex = 0;
     for (auto& light : scene.lights) {
         light.setUniformIndex(uIndex++);
         light.updateUniforms(mainShader);
     }
+
 	bool running = true;
 	sf::Clock c;
     float counter = 0.0f;
-
-    UserInput input;
-    Vehicle jeep(scene.objects[0],input);
 
 	auto last = c.getElapsedTime();
 	while (running) {
@@ -78,11 +86,15 @@ int main() {
         //scene.objects[0].move(glm::vec3(input.sideInput,0,input.forwardInput)*diffSeconds*1.0f);
         //Some test code to move a spotlight around
         glm::vec3 lightPos = glm::vec3(sin(counter)*4,0+sin(counter*0.1234)*0.3,cos(counter)*4);
-        scene.lights[2].setPosition(jeep.headlightPos); //Moves the spotlight around
-        scene.lights[2].setDirection(normalize(jeep.direction - glm::vec3(0,0.2,0)));
-        scene.lights[2].updateUniforms(mainShader); //Call this whenever you change the light's properties
+        //scene.lights[2].setPosition(jeep.headlightPos); //Moves the spotlight around
+        //scene.lights[2].setDirection(normalize(jeep.direction - glm::vec3(0,0.3,0)));
+        //scene.lights[2].updateUniforms(mainShader); //Call this whenever you change the light's properties
         scene.objects[1].setPosition(lightPos); //Moves the tiger model to the light position
         counter += diff.asSeconds();
+        jeep.l_brakeLight.printLightSpaceMatrix();
+        jeep.headlights.updateUniforms(mainShader);
+        jeep.l_brakeLight.updateUniforms(mainShader);
+        jeep.r_brakeLight.updateUniforms(mainShader);
 		// Clear the OpenGL "context".
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		// Render each object in the scene.

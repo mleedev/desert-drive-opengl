@@ -87,7 +87,7 @@ void calculatePointLight(mat4 light) {
     //Diffuse intensity
     float cosine = dot(normalize(newNormal), normalize(light_vector));
     float angleDist = acos(cosine);
-    float lamber_factor = 1-clamp(angleDist/radians(90),0,1);//min(max(cosine, 0),1);
+    float lamber_factor = 1-pow(clamp(angleDist/radians(90),0,1),4);//min(max(cosine, 0),1);
     //float lamber_factor = min(max(cosine, 0),1);
     vec3 diffuseIntensity = vec3(lamber_factor);//vec3(lamber_factor);
 
@@ -103,7 +103,7 @@ void calculatePointLight(mat4 light) {
     } else if (lightType == 1) {
         light_intensity = vec3(1 - pow(min(distance/radius, 1), 2));
     } else if (lightType == 2) {
-        vec3 lightToFrag = normalize(FragWorldPos - position);
+        vec3 lightToFrag = -normalize( position - FragWorldPos);
         // Calculate the cosine of the angle between the light direction and the direction to the fragment
         float cosAngle = dot(normalize(lightLookVec), lightToFrag);
         // Calculate the cosine of the cutoff angle
@@ -112,10 +112,10 @@ void calculatePointLight(mat4 light) {
 
         float dotProduct = dot(lightToFrag, lightLookVec);
         float angleDist = acos(dotProduct);
-
-        light_intensity = vec3(1 - pow(min(distance/radius, 1), 2))*(1-clamp(angleDist/radians(cutoffAngle),0,1));//vec3(clamp(pow(cosAngle - cosCutoff, 2),0,1)) *
+        diffuseIntensity = vec3(1);
+        light_intensity = vec3(1 - pow(min(distance/radius, 1), 2))*pow(1-clamp(angleDist/radians(cutoffAngle),0,1),2);//vec3(clamp(pow(cosAngle - cosCutoff, 2),0,1)) *
         // If the fragment is outside the light's cone, return 0
-        if (abs(cosAngle) < 0) {
+        if (angleDist > radians(cutoffAngle)) {
             light_intensity = vec3(0);
         }
 

@@ -9,12 +9,14 @@
 #include <memory>
 #include "Object3D.h"
 #include "UserInput.h"
+#include "DynamicLight.h"
 
 class Vehicle {
 private:
     glm::vec3 inputDirection;
     UserInput& userInput;
     Object3D& body;
+
 public:
     glm::vec3 frontLookat;
     glm::vec3 rearCamera;
@@ -23,8 +25,33 @@ public:
     glm::vec3 rotation;
     glm::vec3 direction;
     glm::vec3 headlightPos;
-    Vehicle(Object3D &body, UserInput& userInput);
+    DynamicLight& headlights;
+    DynamicLight& l_brakeLight;
+    DynamicLight& r_brakeLight;
+
+    float speed = 0.0f;
+    float turnSpeed = 0.0f;
+    Vehicle(Object3D &body, UserInput &userInput, DynamicLight &headlights, DynamicLight &lBrakeLight,
+            DynamicLight &rBrakeLight);
     void Update(float deltaTime);
+
+    void accelerate(float dt);
+
+    void deccelerate(float dt);
+
+    void brake(float dt);
+
+    void turn(float dt);
+
+    void reverse(float dt);
+
+    void straighten(float dt);
+
+    void SetLights(DynamicLight &headlights, DynamicLight &l_brakeLight, DynamicLight &r_brakeLight);
+
+    void SetLights();
+
+    void UpdateLights();
 };
 
 

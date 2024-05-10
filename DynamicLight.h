@@ -33,6 +33,8 @@ public:
     int getUniformIndex();
 
     void setLightSpaceMatrix(glm::mat4 matrix);
+
+    void printLightSpaceMatrix();
 };
 
 

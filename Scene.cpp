@@ -17,28 +17,32 @@ Scene Scene::jeep() {
     map.move(glm::vec3(0,-1.2,0));
     map.rotate(glm::vec3(glm::radians(-90.0f),0,0));
 
+    Object3D map2 = Object3D({Mesh3D::square(groundtex)});//assimpLoad("../models/racetrack/arena.obj", true);
+    map2.grow(glm::vec3(100,100,10));
+    map2.move(glm::vec3(20,-1.2,0));
+    //map.rotate(glm::vec3(glm::radians(-90.0f),0,0));
     auto lightSource = assimpLoad("../models/tiger/scene.gltf", true);
     lightSource.setPosition(glm::vec3(-2,1,0));
     lightSource.grow(glm::vec3(0.01,0.01,0.01));
 
     glm::mat4 dirLight = glm::mat4(
-            0.5,-0.1 ,0,0, //Position (Direction for directional lights);
-            1,1,1,0, //Color
+            0.5,-0.5 ,0,0, //Position (Direction for directional lights);
+            0.2,0.2,0.2,0, //Color
             1,1,10,0, //LightType, Range, Cuttoff Angle (For spotlights)
             0,0,0,0 //LookAt (For spotlights)
     );
 
-    glm::mat4 pointLight = glm::mat4(
+    /*glm::mat4 pointLight = glm::mat4(
             -5,0,0,0, //Position
             1,0,0,0, //Color
             2,25,0,0, //LightType, Range, Cuttoff Angle (For spotlights)
             0,0,0,0 //LookAt (For spotlights)
     );
 
-    glm::mat4 spotLight = glm::mat4(
+    /glm::mat4 spotLight = glm::mat4(
             1,0,5,0, //Position
             1,1,0.5,0, //Color
-            3,70,50,0, //LightType, Range, Cuttoff Angle (For spotlights)
+            3,70,45,0, //LightType, Range, Cuttoff Angle (For spotlights)
             0,0,1,0 //LookAt (For spotlights)
     );
 
@@ -47,17 +51,19 @@ Scene Scene::jeep() {
             0,1,0,0, //Color
             2,25,0,0, //LightType, Range, Cuttoff Angle (For spotlights)
             0,0,0,0 //LookAt (For spotlights)
-    );
+    )
+     */
 
     std::vector<Object3D> objects;
     objects.push_back(std::move(jeep));
     objects.push_back(std::move(lightSource));
     objects.push_back(std::move(map));
+    objects.push_back(std::move(map2));
     std::vector<DynamicLight> lights;
     lights.push_back(std::move(DynamicLight(dirLight)));
-    lights.push_back(std::move(DynamicLight(pointLight)));
-    lights.push_back(std::move(DynamicLight(spotLight)));
-    lights.push_back(std::move(DynamicLight(pointLight2)));
+    //lights.push_back(std::move(DynamicLight(pointLight)));
+    //lights.push_back(std::move(DynamicLight(spotLight)));
+    //lights.push_back(std::move(DynamicLight(pointLight2)));
     //Animator animJeep;
     //animJeep.addAnimation(std::make_unique<RotationAnimation>(objects[0], 10, glm::vec3(0, 5.5, 0)));
     std::vector<Animator> animators;

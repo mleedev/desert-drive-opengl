@@ -16,13 +16,17 @@ void printMat4(const glm::mat4& mat) {
     }
 }
 
+void DynamicLight::printLightSpaceMatrix() {
+    printMat4(lightSpaceMatrix);
+}
+
 void DynamicLight::updateUniforms(ShaderProgram& shader) {
     //printMat4(lightSpaceMatrix);
     shader.setUniform("lights["+std::to_string(uniformIndex)+"]", lightSpaceMatrix);
 }
 
 void DynamicLight::setColor(glm::vec3 color) {
-    lightSpaceMatrix[1] = glm::vec4(color, 1.0);
+    lightSpaceMatrix[1] = glm::vec4(color, 0.0);
 }
 
 void DynamicLight::setRange(float range) {
