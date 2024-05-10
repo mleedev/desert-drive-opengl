@@ -14,22 +14,24 @@ Scene Scene::jeep() {
     //std::vector<Mesh3D> ground = {Mesh3D::square(groundtex)};
     Object3D map = Object3D({Mesh3D::square(groundtex)});//assimpLoad("../models/racetrack/arena.obj", true);
     map.grow(glm::vec3(100,100,100));
-    map.move(glm::vec3(0,-1.2,0));
+    map.move(glm::vec3(0,-1,0));
     map.rotate(glm::vec3(glm::radians(-90.0f),0,0));
 
-    Object3D map2 = Object3D({Mesh3D::square(groundtex)});//assimpLoad("../models/racetrack/arena.obj", true);
-    map2.grow(glm::vec3(100,100,10));
-    map2.move(glm::vec3(20,-1.2,0));
+    std::vector<Texture> walltex = {Texture::loadTexture("../models/wall.jpg","baseTexture")};
+
+    Object3D map2 = Object3D({Mesh3D::square(walltex)});//assimpLoad("../models/racetrack/arena.obj", true);
+    map2.grow(glm::vec3(100,15,10));
+    map2.move(glm::vec3(0,-1.2,50));
     //map.rotate(glm::vec3(glm::radians(-90.0f),0,0));
     auto lightSource = assimpLoad("../models/tiger/scene.gltf", true);
     lightSource.setPosition(glm::vec3(-2,1,0));
     lightSource.grow(glm::vec3(0.01,0.01,0.01));
 
     glm::mat4 dirLight = glm::mat4(
-            0.5,-0.5 ,0,0, //Position (Direction for directional lights);
-            0.2,0.2,0.2,0, //Color
+            0,0 ,0,0, //Position (Direction for directional lights);
+            0.4,0.4,0.5,0, //Color
             1,1,10,0, //LightType, Range, Cuttoff Angle (For spotlights)
-            0,0,0,0 //LookAt (For spotlights)
+            0,-1,0,0 //LookAt (For spotlights and directionalLights)
     );
 
     /*glm::mat4 pointLight = glm::mat4(

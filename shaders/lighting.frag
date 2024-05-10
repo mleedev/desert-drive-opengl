@@ -78,7 +78,7 @@ void calculatePointLight(mat4 light) {
     float cutoffAngle = light[2].z;
     vec3 lightLookVec = light[3].xyz;
     if (lightType == 0) { // Direcitonal light becomes a direction rather than a position
-        position = FragWorldPos - position;
+        position = FragWorldPos - lightLookVec;
     }
 
     vec3 light_vector = position - FragWorldPos;

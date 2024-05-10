@@ -151,6 +151,6 @@ void Vehicle::UpdateLights() {
     headlights.setPosition(body.getPosition() + direction * 2.0f + glm::vec3(0,1,0));
     headlights.setDirection(glm::normalize(direction - glm::vec3(0,0.3,0)));
 
-    l_brakeLight.setPosition(body.getPosition() - direction * 4.0f - glm::vec3(0,0,0));
+    l_brakeLight.setPosition(body.getPosition() - direction * 2.5f - glm::vec3(0,0,0));
     //l_brakeLight.setColor(glm::vec3())
 }
