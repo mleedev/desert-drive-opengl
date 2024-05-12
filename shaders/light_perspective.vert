@@ -8,17 +8,18 @@ layout (location=2) in vec2 vTexCoord;
 uniform mat4 projection;
 uniform mat4 view;
 uniform mat4 model;
+uniform mat4 lightSpaceMatrix;
 
 out vec2 TexCoord;
 out vec3 Normal;
 out vec3 FragWorldPos;
+out vec4 FragPosLightSpace;
 
 void main() {
     // Transform the position to clip space.
     gl_Position = projection * view * model * vec4(vPosition, 1.0);
     TexCoord = vTexCoord;
     Normal = mat3(transpose(inverse(model))) * vNormal;
-
-
     FragWorldPos = vec3(model * vec4(vPosition, 1.0));
+    FragPosLightSpace =  lightSpaceMatrix * vec4(FragWorldPos,1.0);
 }

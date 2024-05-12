@@ -1,8 +1,10 @@
 #include "ShaderProgram.h"
+#include "Mesh3D.h"
 #include <glad/glad.h>
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <SFML/Window.hpp>
 
 ShaderProgram::ShaderProgram()
     : m_programId(-1) {
@@ -90,6 +92,48 @@ void ShaderProgram::load(const std::string& vertexShaderPath, const std::string&
     glDeleteShader(fragment);
 }
 
+uint32_t myFbo;
+uint32_t depthBufferId;
+
+void ShaderProgram::EnableShadowMap() {
+    // Generate and bind a custom framebuffer.
+    // Generate and bind a custom framebuffer.
+    //myFbo;
+    glGenFramebuffers(1, &myFbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, myFbo);
+    //setUniform("shadowMap", myFbo);
+// Render commands will no longer render to the screen.
+
+    //depthBufferId;
+    glGenTextures(1, &depthBufferId);
+    glBindTexture(GL_TEXTURE_2D, depthBufferId);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 300, 300, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+// Bind the two textures as the write-destinations for color and depth.
+    //glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorBufferId, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthBufferId, 0);
+}
+
+void ShaderProgram::RenderShadowMap(sf::Window& window) {
+    glBindFramebuffer(GL_FRAMEBUFFER, myFbo);
+    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glViewport(0, 0, 300, 300);
+}
+
+void ShaderProgram::ShadowMapComplete() {
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, depthBufferId);
+    setUniform("shadowMap", 1);
+
+    glClearColor(0.f, 0.f, 0.f, 1.f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
 void ShaderProgram::activate()
 {
     glUseProgram(m_programId);
@@ -98,6 +142,11 @@ void ShaderProgram::activate()
 void ShaderProgram::setUniform(const std::string& uniformName, bool value)
 {
     glUniform1i(glGetUniformLocation(m_programId, uniformName.c_str()), (int32_t)value);
+}
+
+void ShaderProgram::setUniform(const std::string& uniformName, uint32_t value)
+{
+    glUniform1i(glGetUniformLocation(m_programId, uniformName.c_str()), value);
 }
 
 void ShaderProgram::setUniform(const std::string& uniformName, int32_t value)

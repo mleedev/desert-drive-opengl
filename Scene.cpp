@@ -28,6 +28,7 @@ Scene Scene::jeep() {
     lightSource.setPosition(glm::vec3(-2,1,0));
     lightSource.grow(glm::vec3(0.01,0.01,0.01));
 
+
     glm::mat4 dirLight = glm::mat4(
             0,0 ,0,0, //Position (Direction for directional lights);
             1,1,1,0, //Color

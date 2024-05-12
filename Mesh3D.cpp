@@ -51,6 +51,8 @@ Mesh3D::Mesh3D(std::vector<Vertex3D>&& vertices, std::vector<uint32_t>&& faces, 
 
 	// Unbind the vertex array, so no one else can accidentally mess with it.
 	glBindVertexArray(0);
+// Render commands will no longer render to the screen.
+
 }
 
 void Mesh3D::addTexture(Texture texture)
@@ -62,8 +64,8 @@ void Mesh3D::render(sf::Window& window, ShaderProgram& program) const {
 	// Activate the mesh's vertex array.
 	glBindVertexArray(m_vao);
 	for (auto i = 0; i < m_textures.size(); i++) {
-		program.setUniform(m_textures[i].samplerName, i);
-		glActiveTexture(GL_TEXTURE0 + i);
+		program.setUniform(m_textures[i].samplerName, i + 2);
+		glActiveTexture(GL_TEXTURE2 + i);
 		glBindTexture(GL_TEXTURE_2D, m_textures[i].textureId);
 	}
 

@@ -8,7 +8,7 @@
 
 const float maxTurnSpeed = 80.0f;
 const float turnAcceleration = 320.0f;
-const float maxSpeed = 20.0f;
+const float maxSpeed = 40.0f;
 const float acceleration = 12.0f;
 const float deccelerationMult = 0.5f;
 const float brakeMult = 4.0f;
@@ -52,8 +52,24 @@ glm::vec3 rotationToDirection(const glm::vec3& rotation) {
     return glm::normalize(direction);
 }
 
+float getGearMult(float sp) {
+    float perc = sp/maxSpeed;
+    if (perc < 0.05) {
+        return 2.0f;
+    } else if (perc < 0.25) {
+        return 1.5f;
+    } else if (perc < 0.5) {
+        return 1.0f;
+    } else if (perc < 0.75) {
+        return 0.5f;
+    } else {
+        return 0.25f;
+    }
+}
+
 void Vehicle::accelerate(float dt) {
-    speed += acceleration * dt;
+    float gearMult = getGearMult(speed);
+    speed += acceleration * gearMult * dt;
     if (speed > maxSpeed) {
         speed = maxSpeed;
     }
@@ -114,6 +130,10 @@ void Vehicle::straighten(float dt) {
 
 }
 
+#include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
 void Vehicle::Update(float dt) { // deltaTime
     inputDirection = glm::vec3(userInput.sideInput, 0,userInput.forwardInput);
     l_brakeLight.setColor(glm::vec3(0,0,0));
@@ -133,12 +153,17 @@ void Vehicle::Update(float dt) { // deltaTime
     } else {
         straighten(dt);
     }
-    rotation.y += glm::radians(turnSpeed) * std::clamp(speed/speedTurnThreshold,-1.0f,1.0f) * dt;
+    rotation.y -= (glm::radians(turnSpeed) * std::clamp(speed/speedTurnThreshold,-1.0f,1.0f) * dt);
+    if (rotation.y < -glm::pi<float>()) {
+        rotation.y += 2*glm::pi<float>();
+    } else if (rotation.y > glm::pi<float>()) {
+        rotation.y -= 2*glm::pi<float>();
+    }
 
-    direction = rotationToDirection(rotation);
+    direction = rotationToDirection(-rotation);
     velocity = direction * speed * dt;
     body.setPosition(body.getPosition() + velocity);
-    body.setOrientation(-rotation);
+    body.setOrientation(rotation);
 
     frontLookat = body.getPosition() + direction * 10.0f;
 
@@ -149,11 +174,11 @@ void Vehicle::Update(float dt) { // deltaTime
         followSpeedTarget = 5.0f;
     } else if (userInput.cameraView == 1) {
         rearTarget = body.getPosition() + direction * 2.0f + glm::vec3(0,1.5,0);
-        followSpeedTarget = 200.0f;
+        followSpeedTarget = 100.0f;
     } else if (userInput.cameraView == 2) {
         rearTarget = body.getPosition() - direction * 20.0f + glm::vec3(0,20,0);
         followSpeedTarget = 10.0f;
-    } else if (userInput.cameraView == 4) {
+    } else if (userInput.cameraView == 3) {
         rearTarget = glm::vec3(0,0,0);//body.getPosition() + direction * 50.0f + glm::vec3(0,0,0);
         followSpeedTarget = 5.0f;
     }
@@ -170,9 +195,9 @@ void Vehicle::UpdateLights() {
     float heightAdd = 1.0f;
     if (userInput.highBeams) {
         heightAdd = 1.2f;
-        headlights.setRange(60.0f);
-        headlights.setCutoffAngle(60.0f);
-        headlights.setColor(glm::vec3(0.9,0.9,1));
+        headlights.setRange(80.0f);
+        headlights.setCutoffAngle(70.0f);
+        headlights.setColor(glm::vec3(1,1,1.2));
     } else {
         headlights.setRange(35.0f);
         headlights.setCutoffAngle(45.0);

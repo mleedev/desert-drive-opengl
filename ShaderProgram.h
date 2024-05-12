@@ -1,6 +1,8 @@
 #pragma once
 #include <glm/ext.hpp>
 #include <string>
+#include <SFML/Window.hpp>
+
 class ShaderProgram {
 	uint32_t m_programId;
 
@@ -22,4 +24,14 @@ public:
 
     static ShaderProgram phongLighting();
     static ShaderProgram textureMapping();
+
+    void RenderShadowMap(sf::Window &window);
+
+    void ShadowMapComplete();
+
+    void EnableShadowMap(sf::Window &window);
+
+    void EnableShadowMap();
+
+    void setUniform(const std::string &uniformName, uint32_t value);
 };
