@@ -33,12 +33,16 @@ void DynamicLight::setRange(float range) {
     lightSpaceMatrix[2][1] = range;
 }
 
+void DynamicLight::setCutoffAngle(float degrees) {
+    lightSpaceMatrix[2][2] = degrees;
+}
+
 void DynamicLight::setType(int type) {
     lightSpaceMatrix[2][0] = type;
 }
 
 void DynamicLight::setDirection(glm::vec3 lookVector) {
-    lightSpaceMatrix[3] = glm::vec4(lookVector, 0.0);
+    lightSpaceMatrix[3] = glm::vec4(glm::normalize(lookVector), 0.0);
 }
 
 void DynamicLight::setPosition(glm::vec3 position) {

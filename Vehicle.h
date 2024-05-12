@@ -25,6 +25,7 @@ public:
     glm::vec3 rotation;
     glm::vec3 direction;
     glm::vec3 headlightPos;
+    float followSpeed = 0.0f;
     DynamicLight& headlights;
     DynamicLight& l_brakeLight;
     DynamicLight& r_brakeLight;

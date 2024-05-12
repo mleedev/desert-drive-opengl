@@ -35,7 +35,7 @@ int main() {
 	mainShader.activate();
 	mainShader.setUniform("view", camera);
     mainShader.setUniform("projection", perspective);
-    mainShader.setUniform("ambientColor",glm::vec3(0.3,0.3,0.3));
+    //mainShader.setUniform("ambientColor",glm::vec3(0.3,0.3,0.3));
 	// Ready, set, go!
 	for (auto& animator : scene.animators) {
 		animator.start();
@@ -83,6 +83,7 @@ int main() {
         cameraPosition = jeep.rearCamera;
         camera = glm::lookAt(cameraPosition, jeep.frontLookat, glm::vec3(0, 1, 0));
         mainShader.setUniform("view", camera);
+        mainShader.setUniform("viewPos", cameraPosition);
         //scene.objects[0].move(glm::vec3(input.sideInput,0,input.forwardInput)*diffSeconds*1.0f);
         //Some test code to move a spotlight around
         glm::vec3 lightPos = glm::vec3(sin(counter)*4,0+sin(counter*0.1234)*0.3,cos(counter)*4);
@@ -91,7 +92,6 @@ int main() {
         //scene.lights[2].updateUniforms(mainShader); //Call this whenever you change the light's properties
         scene.objects[1].setPosition(lightPos); //Moves the tiger model to the light position
         counter += diff.asSeconds();
-        jeep.l_brakeLight.printLightSpaceMatrix();
         jeep.headlights.updateUniforms(mainShader);
         jeep.l_brakeLight.updateUniforms(mainShader);
         jeep.r_brakeLight.updateUniforms(mainShader);

@@ -35,6 +35,8 @@ public:
     void setLightSpaceMatrix(glm::mat4 matrix);
 
     void printLightSpaceMatrix();
+
+    void setCutoffAngle(float degrees);
 };
 
 

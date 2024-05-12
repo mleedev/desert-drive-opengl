@@ -19,5 +19,6 @@ void main() {
     TexCoord = vTexCoord;
     Normal = mat3(transpose(inverse(model))) * vNormal;
 
+
     FragWorldPos = vec3(model * vec4(vPosition, 1.0));
 }

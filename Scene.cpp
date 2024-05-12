@@ -22,6 +22,7 @@ Scene Scene::jeep() {
     Object3D map2 = Object3D({Mesh3D::square(walltex)});//assimpLoad("../models/racetrack/arena.obj", true);
     map2.grow(glm::vec3(100,15,10));
     map2.move(glm::vec3(0,-1.2,50));
+    map.rotate(glm::vec3(0,glm::radians(180.0),0));
     //map.rotate(glm::vec3(glm::radians(-90.0f),0,0));
     auto lightSource = assimpLoad("../models/tiger/scene.gltf", true);
     lightSource.setPosition(glm::vec3(-2,1,0));
@@ -29,9 +30,9 @@ Scene Scene::jeep() {
 
     glm::mat4 dirLight = glm::mat4(
             0,0 ,0,0, //Position (Direction for directional lights);
-            0.4,0.4,0.5,0, //Color
+            1,1,1,0, //Color
             1,1,10,0, //LightType, Range, Cuttoff Angle (For spotlights)
-            0,-1,0,0 //LookAt (For spotlights and directionalLights)
+            0.5,-1,0,0 //LookAt (For spotlights and directionalLights)
     );
 
     /*glm::mat4 pointLight = glm::mat4(

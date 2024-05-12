@@ -21,7 +21,12 @@ void UserInput::processInput(sf::Event event) {
             //right
             dPressed = true;
             sideInput = 1;
+        } else if (event.key.scancode == sf::Keyboard::Scancode::F) {
+            highBeams = !highBeams;
+        } else if (event.key.scancode == sf::Keyboard::Scancode::V) {
+            cameraView = (cameraView + 1) % 4;
         }
+
     } else if (event.type == sf::Event::KeyReleased) {
         if (event.key.scancode == sf::Keyboard::Scancode::W) {
             //forward

@@ -18,7 +18,7 @@ void Vehicle::SetLights() {
     headlights.setLightSpaceMatrix(glm::mat4(
             35,0,0,0, //Position
             1,1,0.7,0, //Color
-            3,60,55,0, //LightType, Range, Cuttoff Angle (For spotlights)
+            3,50,55,0, //LightType, Range, Cuttoff Angle (For spotlights)
             0,0,1,0 //LookAt (For spotlights)
             ));
     l_brakeLight.setLightSpaceMatrix(glm::mat4(
@@ -141,16 +141,46 @@ void Vehicle::Update(float dt) { // deltaTime
     body.setOrientation(-rotation);
 
     frontLookat = body.getPosition() + direction * 10.0f;
-    rearCamera = rearCamera + (body.getPosition() - direction * 10.0f + glm::vec3(0,3,0) - rearCamera) * std::min(dt/0.2f,1.0f);
+
+    glm::vec3 rearTarget;
+    float followSpeedTarget = 0;
+    if (userInput.cameraView == 0) {
+        rearTarget = body.getPosition() - direction * 10.0f + glm::vec3(0,3,0);
+        followSpeedTarget = 5.0f;
+    } else if (userInput.cameraView == 1) {
+        rearTarget = body.getPosition() + direction * 2.0f + glm::vec3(0,1.5,0);
+        followSpeedTarget = 200.0f;
+    } else if (userInput.cameraView == 2) {
+        rearTarget = body.getPosition() - direction * 20.0f + glm::vec3(0,20,0);
+        followSpeedTarget = 10.0f;
+    } else if (userInput.cameraView == 4) {
+        rearTarget = glm::vec3(0,0,0);//body.getPosition() + direction * 50.0f + glm::vec3(0,0,0);
+        followSpeedTarget = 5.0f;
+    }
+
+    followSpeed = followSpeed + (followSpeedTarget - followSpeed) * std::min(dt*(5.0f),1.0f);
+
+    rearCamera = rearCamera + (rearTarget - rearCamera) * std::min(dt*(followSpeed),1.0f);
 
     headlightPos = body.getPosition() + direction * 2.0f + glm::vec3(0,1,0);
     UpdateLights();
 }
 
 void Vehicle::UpdateLights() {
-    headlights.setPosition(body.getPosition() + direction * 2.0f + glm::vec3(0,1,0));
+    float heightAdd = 1.0f;
+    if (userInput.highBeams) {
+        heightAdd = 1.2f;
+        headlights.setRange(60.0f);
+        headlights.setCutoffAngle(60.0f);
+        headlights.setColor(glm::vec3(0.9,0.9,1));
+    } else {
+        headlights.setRange(35.0f);
+        headlights.setCutoffAngle(45.0);
+        headlights.setColor(glm::vec3(1,1,0.7));
+    }
+    headlights.setPosition(body.getPosition() + direction * 2.0f + glm::vec3(0,heightAdd,0));
     headlights.setDirection(glm::normalize(direction - glm::vec3(0,0.3,0)));
 
-    l_brakeLight.setPosition(body.getPosition() - direction * 2.5f - glm::vec3(0,0,0));
+    l_brakeLight.setPosition(body.getPosition() - direction * 2.5f + glm::vec3(0,1,0));
     //l_brakeLight.setColor(glm::vec3())
 }

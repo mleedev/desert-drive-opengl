@@ -12,6 +12,8 @@ public:
     bool sPressed = false;
     bool aPressed = false;
     bool dPressed = false;
+    bool highBeams = false;
+    int cameraView = 0;
     int forwardInput = 0;
     int sideInput = 0;
     void processInput(sf::Event event);
