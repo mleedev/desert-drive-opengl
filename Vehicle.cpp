@@ -99,11 +99,11 @@ void Vehicle::deccelerate(float dt) {
     } else if (lastSpeed > 0.0 && speed < 0.0) {
         speed = 0.0;
     }
-
 }
 
 void Vehicle::brake(float dt) {
     deccelerate(dt*brakeMult);
+    accelPower = speed < 0.0 ? brakeMult : -brakeMult;
 }
 
 void Vehicle::turn(float dt) {
