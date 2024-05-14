@@ -73,7 +73,7 @@ int main() {
     unsigned int shadowMap;
 
     float near_plane = 0.1f, far_plane = 100.0f;
-    float left = -50.0f, right = 50.0f, bottom = -50.0f, top = 50.0f;
+    float left = -25.0f, right = 25.0f, bottom = -25.0f, top = 25.0f;
     glm::mat4 shadowProjection = glm::ortho(left, right, bottom, top, near_plane, far_plane);
     if (shadingEnabled) {
         //mainShader.EnableShadowMap();
@@ -82,11 +82,11 @@ int main() {
         glGenTextures(1, &shadowMap);
         glBindTexture(GL_TEXTURE_2D, shadowMap);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, shadowMapWidth, shadowMapHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,GL_NEAREST); //GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,GL_NEAREST); //GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-        float clampColor[] = { 4.0f, 4.0f, 4.0f, 4.0f };
+        float clampColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
         glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, clampColor);
 
         glBindFramebuffer(GL_FRAMEBUFFER, shadowMapFBO);
@@ -100,10 +100,12 @@ int main() {
         glBindTexture(GL_TEXTURE_2D,shadowMap);
     }
     mainShader.setUniform("shadowMap", 2);
+    mainShader.setUniform("shadowProjection", shadowProjection);
 
 
 
-	auto last = c.getElapsedTime();
+
+    auto last = c.getElapsedTime();
 	while (running) {
 		sf::Event ev;
 		while (window.pollEvent(ev)) {
@@ -129,20 +131,30 @@ int main() {
         //scene.lights[2].setPosition(jeep.headlightPos); //Moves the spotlight around
         //scene.lights[2].setDirection(normalize(jeep.direction - glm::vec3(0,0.3,0)));
         //scene.lights[2].updateUniforms(mainShader); //Call this whenever you change the light's properties
-        scene.objects[1].setPosition(lightPos); //Moves the tiger model to the light position
+        //scene.objects[1].setPosition(lightPos); //Moves the tiger model to the light position
         counter += diff.asSeconds();
         jeep.headlights.updateUniforms(mainShader);
         jeep.l_brakeLight.updateUniforms(mainShader);
         jeep.r_brakeLight.updateUniforms(mainShader);
+        cameraPosition = jeep.rearCamera;
+        camera = glm::lookAt(cameraPosition, jeep.frontLookat, glm::vec3(0, 1, 0));
 		// Clear the OpenGL "context".
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         //Shadows
-        sun.setDirection(glm::normalize(glm::vec3(2, sin(counter)*10,cos(counter)*10)));
+        //sun.setDirection(glm::normalize(glm::vec3(5, -abs(sin(counter*0.25))*10,cos(counter*0.25)*10)));
         sun.updateUniforms(mainShader);
         if (shadingEnabled) {
+
+            //Bounding sphere code//
+            float boundingRadius = 25.0f;
+            glm::vec3 cameraDirection = -glm::vec3(camera[0][2], camera[1][2], camera[2][2]);
+            cameraDirection = glm::normalize(cameraDirection);
+            glm::vec3 boundingCenter = cameraPosition + cameraDirection * boundingRadius*0.8f;
+            scene.objects[1].setPosition(boundingCenter);
+            ///
             glm::mat4 sunMatrix = sun.getLightSpaceMatrix();
-            glm::vec3 sunPosition = cameraPosition - glm::vec3(sunMatrix[3])*20.0f;
-            glm::vec3 sunLookat = cameraPosition;
+            glm::vec3 sunPosition = boundingCenter - glm::vec3(sunMatrix[3])*boundingRadius;
+            glm::vec3 sunLookat = boundingCenter; //+ glm::direc;
             glm::mat4 lightView = glm::lookAt(sunPosition, sunLookat, glm::vec3(0,1,0));
             glm::mat4 lightSpaceMatrix = shadowProjection * lightView;//lightProjection * lightView;
             mainShader.setUniform("LightSpaceMatrix",lightSpaceMatrix);
@@ -150,8 +162,6 @@ int main() {
             mainShader.setUniform("view", lightView);
             //mainShader.setUniform("viewPos", glm::lookAt(glm::vec3(0, 5, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, -1)));
             mainShader.setUniform("includeLighting", false);
-            mainShader.setUniform("projection", shadowProjection);
-
             //mainShader.RenderShadowMap(window);
             glBindFramebuffer(GL_FRAMEBUFFER, shadowMapFBO);
             glBindTexture(GL_TEXTURE_2D,shadowMap);
@@ -167,11 +177,9 @@ int main() {
         }
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        cameraPosition = jeep.rearCamera;
-        camera = glm::lookAt(cameraPosition, jeep.frontLookat, glm::vec3(0, 1, 0));
         mainShader.setUniform("view", camera);
-        mainShader.setUniform("viewPos", cameraPosition);
-        mainShader.setUniform("projection", perspective);
+        //mainShader.setUniform("viewPos", cameraPosition);
+        //mainShader.setUniform("projection", perspective);
         mainShader.setUniform("includeLighting",true);
 		// Render each object in the scene.
 		for (auto& o : scene.objects) {
