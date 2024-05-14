@@ -148,11 +148,14 @@ void Vehicle::Update(float dt) { // deltaTime
     inputDirection = glm::vec3(userInput.sideInput, 0,userInput.forwardInput);
     l_brakeLight.setColor(glm::vec3(0,0,0));
     accelPower = 0.0f;
-    if (inputDirection.z > 0) {
-        accelerate(dt);
-    } else if (inputDirection.z < 0 && speed > 0.0) {
+    if (inputDirection.z < 0 && speed > 0.0) {
         brake(dt);
-        l_brakeLight.setColor(glm::vec3(1,0,0));
+        l_brakeLight.setColor(glm::vec3(1, 0, 0));
+    } else if (inputDirection.z > 0 && speed < 0.0) {
+        brake(dt);
+        l_brakeLight.setColor(glm::vec3(1, 0, 0));
+    } else if (inputDirection.z > 0) {
+            accelerate(dt);
     } else if (inputDirection.z < 0 && speed <= 0.0) {
         reverse(dt);
         l_brakeLight.setColor(glm::vec3(1,0,0));
