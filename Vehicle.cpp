@@ -185,8 +185,19 @@ void Vehicle::Update(float dt) { // deltaTime
     velocity = direction * speed * dt;
     body.setPosition(body.getPosition() + velocity);
     body.setOrientation(rotation);
+
+    glm::vec3 chassisRotation = glm::vec3(chassisRotationX,0,chassisRotationZ);
+    glm::vec3 worldChassisRotationF = glm::vec3(-chassisRotation.z, rotation.y, -chassisRotation.x);
+    glm::vec3 worldChassisRotationR = glm::vec3(-chassisRotation.z, rotation.y+glm::radians(90.0f), -chassisRotation.x);
+    glm::vec3 worldChassisRotationU = glm::vec3(-chassisRotation.z - glm::radians(90.0f), rotation.y, -chassisRotation.x + glm::radians(0.0f));
+    glm::vec3 worldChassisDirectionF = rotationToDirection(-worldChassisRotationF);
+    glm::vec3 worldChassisDirectionR = rotationToDirection(-worldChassisRotationR);
+    glm::vec3 worldChassisDirectionU = rotationToDirection(-worldChassisRotationU);
     auto& chassis = body.getChild(0);
-    chassis.setOrientation(glm::vec3(chassisRotationX,0,chassisRotationZ));
+    chassis.setOrientation(chassisRotation);
+
+    auto& windows = body.getChild(1);
+    windows.setOrientation(chassisRotation);
 
     glm::vec3 frontTireRotation = glm::vec3(0,-turnSpeed/maxTurnSpeed* glm::radians(35.0f),0);
     float frontXMult = sin(frontTireRotation.y - glm::radians(0.0f));
@@ -222,26 +233,28 @@ void Vehicle::Update(float dt) { // deltaTime
 
     auto& tire4 = body.getChild(3);
     tire4.setOrientation(glm::vec3(0,0,-tireSpin));
-    frontLookat = body.getPosition() + direction * 10.0f;
-
-
 
     glm::vec3 rearTarget;
     float followSpeedTarget = 0;
-    if (userInput.cameraView == 0) {
+    if (userInput.cameraView == 0) { //Regular follow
+        frontLookat = body.getPosition() + direction * 10.0f;
         rearTarget = body.getPosition() - direction * 10.0f + glm::vec3(0,3,0);
         followSpeedTarget = 5.0f;
-    } else if (userInput.cameraView == 1) {
-        rearTarget = body.getPosition() + direction * 2.0f + glm::vec3(0,2.0,0);
-        frontLookat = frontLookat + glm::vec3(0,1.0,0);
-        followSpeedTarget = 100.0f;
-    } else if (userInput.cameraView == 2) {
+    } else if (userInput.cameraView == 1) { //POV
+        rearTarget = body.getPosition() + worldChassisDirectionF * 0.05f + worldChassisDirectionR*0.3f + worldChassisDirectionU*1.575f; //glm::vec3(0,1.575,0);
+        frontLookat = body.getPosition() + worldChassisDirectionF * 10.0f + worldChassisDirectionR*0.3f + worldChassisDirectionU*1.575f;  //+ glm::vec3(0,1.5,0);
+        followSpeedTarget = 1000.0f;
+    } else if (userInput.cameraView == 3) { //Top camera
         rearTarget = body.getPosition() - direction * 20.0f + glm::vec3(0,20,0);
         followSpeedTarget = 10.0f;
-    } else if (userInput.cameraView == 3) {
+    } else if (userInput.cameraView == 4) { //Locked at origion
         rearTarget = glm::vec3(0,0,0);//body.getPosition() + direction * 50.0f + glm::vec3(0,0,0);
         frontLookat = body.getPosition();
         followSpeedTarget = 5.0f;
+    } else if (userInput.cameraView == 2) { //Side POV
+        rearTarget = body.getPosition() + worldChassisDirectionR * 1.0f - worldChassisDirectionF*1.0f + glm::vec3(0,1.15,0);
+        frontLookat = body.getPosition() + worldChassisDirectionR * 1.0f + worldChassisDirectionF*10.0f + glm::vec3(0,1.15,0);
+        followSpeedTarget = 1000.0f;
     }
 
     followSpeed = followSpeed + (followSpeedTarget - followSpeed) * std::min(dt*(5.0f),1.0f);

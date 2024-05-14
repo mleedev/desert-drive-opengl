@@ -18,7 +18,7 @@ Scene Scene::jeep() {
     jeep.getChild(4).move(glm::vec3(329.379, 170.609, -142.697));
     jeep.getChild(5).move(glm::vec3(329.379, 170.609, 142.697));
 
-    jeep.move(glm::vec3(0, -1.2, 0));
+    jeep.move(glm::vec3(0, -1.25, 0));
     jeep.grow(glm::vec3(0.004, 0.004, 0.004));
 
     auto cactus = assimpLoad("../models/desert/Cactus.fbx", true);

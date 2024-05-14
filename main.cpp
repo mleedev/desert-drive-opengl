@@ -159,8 +159,6 @@ int main() {
             //scene.objects[1].setPosition(boundingCenter);
             ///
             glm::mat4 sunMatrix = sun.getLightSpaceMatrix();
-            sun.printLightSpaceMatrix();
-            std::cout<<"endmatrix \n";
             glm::vec3 sunPosition = boundingCenter - glm::vec3(sunMatrix[3])*boundingRadius;
             glm::vec3 sunLookat = boundingCenter; //+ glm::direc;
             glm::mat4 lightView = glm::lookAt(sunPosition, sunLookat, glm::vec3(0,1,0));
