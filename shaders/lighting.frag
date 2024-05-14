@@ -81,80 +81,77 @@ int height = 800;
 
 vec3 shadowDepth;
 
-vec3 calculateShadow() {
-    //vec2 testUV = vec2(gl_FragCoord.x / width, gl_FragCoord.y / height);
-    vec2 testUV = vec2((FragWorldPos.x + 50.0) / 100.0, (FragWorldPos.z + 50.0) / 100.0);
-    vec3 projCoords = FragPosLightSpace.xyz / FragPosLightSpace.w;
-    projCoords = projCoords * 0.5 + 0.5;
-    float currentDepth = projCoords.z;
-    vec2 shadowMapUV = projCoords.xz;
-    vec3 shadowDepth = texture(shadowMap,testUV).rgb;//shadowMapUV).r;
+float calculateShadow() {
+    vec3 lightCoords = FragPosLightSpace.xyz / FragPosLightSpace.w;
+    if (lightCoords.z <= 1.0f) {
+        lightCoords = lightCoords * 0.5 + 0.5;
+        float closestDepth = texture(shadowMap, lightCoords.xy).r;
+        float currentDepth = lightCoords.z;
 
-    float ndc = shadowDepth.x * 2.0 - 1.0;
-    float linearDepth = (2.0 * 0.1 * 100.0) / (100.0 + 0.1 - ndc * (100.0 - 0.1))/100.0;
-
-
-//float nshadowDepth = texture(shadowMap, gl_PointCoord).r;
-    return vec3(linearDepth);
-    //return  < shadowDepth ? 0.0 : 1.0;//abs(FragPosLightSpace.x);//ndepth > nshadowDepth ? 0.0 : 1.0; //ndepth / 1.0f;
+        float bias = 0.005f;
+        if (currentDepth > closestDepth + bias) {
+            return 1.0f;
+        }
+    }
+    return 0.0f;//abs(currentDepth - closestDepth); //0.0f;
 }
 
 void calculatePointLight(mat4 light) {
-lPosition = light[0].xyz;
-lColor = light[1].xyz;
-lType = light[2].x - 1;
-lRange = light[2].y;
-lCutoffAngle = light[2].z;
-lLookVec = light[3].xyz;
+    lPosition = light[0].xyz;
+    lColor = light[1].xyz;
+    lType = light[2].x - 1;
+    lRange = light[2].y;
+    lCutoffAngle = light[2].z;
+    lLookVec = light[3].xyz;
 
-if (lType < 0.01) { // Direcitonal light becomes a direction rather than a position
-light_vector = -normalize(lLookVec);
-light_direction = -normalize(lLookVec);
-distance = 0.0f;
-} else {
-light_vector = lPosition - FragWorldPos;
-light_direction = normalize(light_vector);
-distance = length(light_vector);
-}
-distanceMult = 1.0f - pow( min(distance/lRange, 1.0f), 2.0f);
-//Diffuse intensity
-cosine = dot(normal, light_direction);
-angleDist = acos(cosine);
-lamber_factor = 1-pow(clamp(angleDist/radians(90.0f),0,1),4);//min(max(cosine, 0),1);
-//float lamber_factor = min(max(cosine, 0),1);
-diffuseIntensity = lamber_factor;//vec3(lamber_factor);
+    if (lType < 0.01) { // Direcitonal light becomes a direction rather than a position
+        light_vector = -normalize(lLookVec);
+        light_direction = -normalize(lLookVec);
+        distance = 0.0f;
+    } else {
+        light_vector = lPosition - FragWorldPos;
+        light_direction = normalize(light_vector);
+        distance = length(light_vector);
+    }
+    distanceMult = 1.0f - pow( min(distance/lRange, 1.0f), 2.0f);
+    //Diffuse intensity
+    cosine = dot(normal, light_direction);
+    angleDist = acos(cosine);
+    lamber_factor = 1-pow(clamp(angleDist/radians(90.0f),0,1),4);//min(max(cosine, 0),1);
+    //float lamber_factor = min(max(cosine, 0),1);
+    diffuseIntensity = lamber_factor;//vec3(lamber_factor);
 
-//Specular intensity
-view_vector = viewPos - FragWorldPos;
-reflect_vector = reflect(-light_direction, normal);
-cosine = dot(reflect_vector, normalize(view_vector));
-//angleDist = acos(cosine);
-spec = pow(clamp(cosine,0,1), 10) * 2 * distanceMult;// * shininess.x;
-//if (cosine < 0) {
-//    spec = 0.0;
-//}
+    //Specular intensity
+    view_vector = viewPos - FragWorldPos;
+    reflect_vector = reflect(-light_direction, normal);
+    cosine = dot(reflect_vector, normalize(view_vector));
+    //angleDist = acos(cosine);
+    spec = pow(clamp(cosine,0,1), 10) * 2 * distanceMult;// * shininess.x;
+    //if (cosine < 0) {
+    //    spec = 0.0;
+    //}
 
 
-//light_intensity;
-if (lType < 0.01) {
-//light_intensity = vec3(1);
-light_intensity = vec3(calculateShadow());
-} else if (lType < 1.01) {
-light_intensity = vec3(distanceMult);
-} else if (lType < 2.01) {
-dotProduct = dot(-light_direction, lLookVec);
-angleDist = acos(dotProduct);
-if (angleDist > radians(lCutoffAngle)) {
-    light_intensity = vec3(0);
-    spec = 0.0f;
-} else {
-    //diffuseIntensity = diffuseIntensity * (1-distanceMult);
-    diffuseIntensity = 1.0f;
-    cosine = pow(1-clamp(angleDist/radians(lCutoffAngle),0,1),2);
-    spec = spec * cosine;
-    light_intensity = vec3(cosine * distanceMult);//vec3(clamp(pow(cosAngle - cosCutoff, 2),0,1)) *
-    // If the fragment is outside the light's cone, return 0
-}
+    //light_intensity;
+    if (lType < 0.01) {
+        //light_intensity = vec3(1);
+        light_intensity = vec3(1-calculateShadow());
+    } else if (lType < 1.01) {
+        light_intensity = vec3(distanceMult);
+    } else if (lType < 2.01) {
+        dotProduct = dot(-light_direction, lLookVec);
+        angleDist = acos(dotProduct);
+    if (angleDist > radians(lCutoffAngle)) {
+        light_intensity = vec3(0);
+        spec = 0.0f;
+    } else {
+        //diffuseIntensity = diffuseIntensity * (1-distanceMult);
+        diffuseIntensity = 1.0f;
+        cosine = pow(1-clamp(angleDist/radians(lCutoffAngle),0,1),2);
+        spec = spec * cosine;
+        light_intensity = vec3(cosine * distanceMult);//vec3(clamp(pow(cosAngle - cosCutoff, 2),0,1)) *
+        // If the fragment is outside the light's cone, return 0
+    }
 
 }
 
@@ -164,32 +161,25 @@ _pl_intensity = _pl_intensity + light_intensity * (diffuseIntensity + spec) * lC
 }
 
 void main() {
-_pl_intensity = vec3(0.0);//Total brightness / color of the fragment
+    _pl_intensity = vec3(0.0);//Total brightness / color of the fragment
 
-// Use the converted color as your normal.
-//newNormal = Normal;//normalize(sampledNormal * 0.5 + Normal * 0.5);
+    // Use the converted color as your normal.
+    //newNormal = Normal;//normalize(sampledNormal * 0.5 + Normal * 0.5);
 
-//Light Test//
-if (includeLighting) {
-normal = normalize(Normal);
+    //Light Test//
+    if (includeLighting) {
+        normal = normalize(Normal);
+        shininess = texture(specMap, TexCoord);
+        for (int i = 0; i < 10; i++) {
+            if (lights[i][2][0] == 0) {
+                break;
+            }
+            calculatePointLight(lights[i]);
+        }
+        FragColor = vec4(_pl_intensity * sceneBrightness, 1)  * (texture(baseTexture, TexCoord));
 
-shininess = texture(specMap, TexCoord);
-_pl_intensity = vec3(0);
-for (int i = 0; i < 10; i++) {
-    if (lights[i][2][0] == 0) {
-        break;
-    }
-    calculatePointLight(lights[i]);
-}
-
-//vec3 lightIntensity = _pl_intensity;//ambientIntensity * 0.001 + diffuseIntensity * 0.001 + specularIntensity * 0.001 + _pl_intensity; //+ _pl_intensity;
-//lightIntensity = lightIntensity / sceneBrightness;
-    FragColor = vec4(_pl_intensity * sceneBrightness, 1) * (vec4(calculateShadow(),1))  * (texture(baseTexture, TexCoord));
-//FragColor = vec4(vec3(calculateShadow()),1.0);
-    /*float shadowdepth = calculateShadow();
-float ndc = shadowdepth * 2.0 - 1.0;
-float linearDepth = (2.0 * 0.1 * 100.0) / (100.0 + 0.1 - ndc * (100.0 - 0.1))/100.0;
-FragColor = vec4(vec3(linearDepth), 1.0);*/
+        //shadowMapUV = (gl_FragCoord.xy) / vec2(width, height);
+        //FragColor = texture(shadowMap,shadowMapUV)/4.0;
     }
     else {
         //float ndc = gl_FragCoord.z * 2.0 - 1.0;

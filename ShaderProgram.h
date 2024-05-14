@@ -34,4 +34,6 @@ public:
     void EnableShadowMap();
 
     void setUniform(const std::string &uniformName, uint32_t value);
+
+    void RenderShadowMap();
 };

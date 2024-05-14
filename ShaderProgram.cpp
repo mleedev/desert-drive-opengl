@@ -107,7 +107,7 @@ void ShaderProgram::EnableShadowMap() {
     //depthBufferId;
     glGenTextures(1, &depthBufferId);
     glBindTexture(GL_TEXTURE_2D, depthBufferId);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 300, 300, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 300, 300, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 // Bind the two textures as the write-destinations for color and depth.
@@ -115,7 +115,7 @@ void ShaderProgram::EnableShadowMap() {
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthBufferId, 0);
 }
 
-void ShaderProgram::RenderShadowMap(sf::Window& window) {
+void ShaderProgram::RenderShadowMap() {
     glBindFramebuffer(GL_FRAMEBUFFER, myFbo);
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

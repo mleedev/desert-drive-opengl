@@ -20,6 +20,10 @@ void DynamicLight::printLightSpaceMatrix() {
     printMat4(lightSpaceMatrix);
 }
 
+glm::mat4 DynamicLight::getLightSpaceMatrix() {
+    return lightSpaceMatrix;
+}
+
 void DynamicLight::updateUniforms(ShaderProgram& shader) {
     //printMat4(lightSpaceMatrix);
     shader.setUniform("lights["+std::to_string(uniformIndex)+"]", lightSpaceMatrix);

@@ -33,13 +33,11 @@ int main() {
 	glm::mat4 perspective = glm::perspective(glm::radians(45.0), static_cast<double>(window.getSize().x) / window.getSize().y, 0.1, 100.0);
 
 	ShaderProgram& mainShader = scene.defaultShader;
-    bool shadingEnabled = true;
-    if (shadingEnabled) {
-        mainShader.EnableShadowMap();
-    }
+
 	mainShader.activate();
 	mainShader.setUniform("view", camera);
     mainShader.setUniform("projection", perspective);
+
     //mainShader.setUniform("ambientColor",glm::vec3(0.3,0.3,0.3));
 	// Ready, set, go!
 	for (auto& animator : scene.animators) {
@@ -67,6 +65,41 @@ int main() {
 	sf::Clock c;
     float counter = 0.0f;
     DynamicLight& sun = scene.lights[0];
+
+    bool shadingEnabled = true;
+    unsigned int shadowMapFBO;
+    unsigned int shadowMapWidth = 2048;
+    unsigned int shadowMapHeight = 2048;
+    unsigned int shadowMap;
+
+    float near_plane = 0.1f, far_plane = 100.0f;
+    float left = -50.0f, right = 50.0f, bottom = -50.0f, top = 50.0f;
+    glm::mat4 shadowProjection = glm::ortho(left, right, bottom, top, near_plane, far_plane);
+    if (shadingEnabled) {
+        //mainShader.EnableShadowMap();
+        glGenFramebuffers(1, &shadowMapFBO);
+
+        glGenTextures(1, &shadowMap);
+        glBindTexture(GL_TEXTURE_2D, shadowMap);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, shadowMapWidth, shadowMapHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+        float clampColor[] = { 4.0f, 4.0f, 4.0f, 4.0f };
+        glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, clampColor);
+
+        glBindFramebuffer(GL_FRAMEBUFFER, shadowMapFBO);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowMap, 0);
+
+        glDrawBuffer(GL_NONE);
+        glReadBuffer(GL_NONE);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        glActiveTexture(GL_TEXTURE0+2);
+        glBindTexture(GL_TEXTURE_2D,shadowMap);
+    }
+    mainShader.setUniform("shadowMap", 2);
 
 
 
@@ -104,31 +137,36 @@ int main() {
 		// Clear the OpenGL "context".
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         //Shadows
+        sun.setDirection(glm::normalize(glm::vec3(2, sin(counter)*10,cos(counter)*10)));
+        sun.updateUniforms(mainShader);
         if (shadingEnabled) {
-            float near_plane = 0.1f, far_plane = 100.0f;
-            float left = -100.0f, right = 100.0f, bottom = -100.0f, top = 100.0f;
-            glm::mat4 lightProjection = perspective;//glm::ortho(left, right, bottom, top, near_plane, far_plane);
-
-            glm::vec3 sunPosition = glm::vec3(-5,50,0);
-            glm::vec3 sunLookat = glm::vec3(0,0,0);
-            glm::mat4 lightView = glm::lookAt(sunPosition, sunLookat, glm::vec3(1,0,0));
-            glm::mat4 lightSpaceMatrix = perspective * lightView;//lightProjection * lightView;
+            glm::mat4 sunMatrix = sun.getLightSpaceMatrix();
+            glm::vec3 sunPosition = cameraPosition - glm::vec3(sunMatrix[3])*20.0f;
+            glm::vec3 sunLookat = cameraPosition;
+            glm::mat4 lightView = glm::lookAt(sunPosition, sunLookat, glm::vec3(0,1,0));
+            glm::mat4 lightSpaceMatrix = shadowProjection * lightView;//lightProjection * lightView;
             mainShader.setUniform("LightSpaceMatrix",lightSpaceMatrix);
-            mainShader.ShadowMapComplete();
+            //mainShader.ShadowMapComplete();
             mainShader.setUniform("view", lightView);
             //mainShader.setUniform("viewPos", glm::lookAt(glm::vec3(0, 5, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, -1)));
             mainShader.setUniform("includeLighting", false);
-            mainShader.setUniform("projection", perspective);
-            mainShader.RenderShadowMap(window);
+            mainShader.setUniform("projection", shadowProjection);
+
+            //mainShader.RenderShadowMap(window);
+            glBindFramebuffer(GL_FRAMEBUFFER, shadowMapFBO);
+            glBindTexture(GL_TEXTURE_2D,shadowMap);
+            glViewport(0,0, shadowMapWidth, shadowMapHeight);
+            glEnable(GL_DEPTH_TEST);
+            glClear(GL_DEPTH_BUFFER_BIT);
             for (auto &o: scene.objects) {
                     o.render(window, mainShader);
             }
-            mainShader.ShadowMapComplete();
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
             //
             glViewport(0, 0, window.getSize().x, window.getSize().y);
         }
 
-
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         cameraPosition = jeep.rearCamera;
         camera = glm::lookAt(cameraPosition, jeep.frontLookat, glm::vec3(0, 1, 0));
         mainShader.setUniform("view", camera);

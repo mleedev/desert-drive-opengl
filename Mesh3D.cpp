@@ -64,8 +64,8 @@ void Mesh3D::render(sf::Window& window, ShaderProgram& program) const {
 	// Activate the mesh's vertex array.
 	glBindVertexArray(m_vao);
 	for (auto i = 0; i < m_textures.size(); i++) {
-		program.setUniform(m_textures[i].samplerName, i + 2);
-		glActiveTexture(GL_TEXTURE2 + i);
+		program.setUniform(m_textures[i].samplerName, i + 4);
+		glActiveTexture(GL_TEXTURE4 + i);
 		glBindTexture(GL_TEXTURE_2D, m_textures[i].textureId);
 	}
 
