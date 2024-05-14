@@ -69,6 +69,7 @@ float getGearMult(float sp) {
 
 void Vehicle::accelerate(float dt) {
     float gearMult = getGearMult(speed);
+    accelPower = gearMult;
     speed += acceleration * gearMult * dt;
     if (speed > maxSpeed) {
         speed = maxSpeed;
@@ -76,18 +77,22 @@ void Vehicle::accelerate(float dt) {
 }
 
 void Vehicle::reverse(float dt) {
-    speed -= acceleration * dt;
+    float gearMult = getGearMult(speed);
+    accelPower = -gearMult;
+    speed -= acceleration * gearMult * dt;
     if (speed < -maxSpeed) {
         speed = -maxSpeed;
     }
 }
 
 void Vehicle::deccelerate(float dt) {
-    float lastSpeed = speed;
+    float lastSpeed = speed;;
     if (speed > 0.0) {
         speed -= acceleration * deccelerationMult * dt;
+        accelPower = -deccelerationMult;
     } else if (speed < 0.0) {
-        speed += 2.0f * dt;
+        speed += acceleration * deccelerationMult * dt;
+        accelPower = deccelerationMult;
     }
     if (lastSpeed < 0.0 && speed > 0.0) {
         speed = 0.0;
@@ -137,6 +142,7 @@ void Vehicle::straighten(float dt) {
 void Vehicle::Update(float dt) { // deltaTime
     inputDirection = glm::vec3(userInput.sideInput, 0,userInput.forwardInput);
     l_brakeLight.setColor(glm::vec3(0,0,0));
+    accelPower = 0.0f;
     if (inputDirection.z > 0) {
         accelerate(dt);
     } else if (inputDirection.z < 0 && speed > 0.0) {
@@ -153,14 +159,23 @@ void Vehicle::Update(float dt) { // deltaTime
     } else {
         straighten(dt);
     }
+    turnPower = turnSpeed/maxTurnSpeed * speed/maxSpeed;
     rotation.y -= (glm::radians(turnSpeed) * std::clamp(speed/speedTurnThreshold,-1.0f,1.0f) * dt);
     if (rotation.y < -glm::pi<float>()) {
         rotation.y += 2*glm::pi<float>();
     } else if (rotation.y > glm::pi<float>()) {
         rotation.y -= 2*glm::pi<float>();
     }
+    accelTilt = accelTilt + (accelPower - accelTilt) * std::min(dt*(2.0f),1.0f);
+    turnTilt = turnTilt + (turnPower - turnTilt) * std::min(dt*(4.0f),1.0f);
+    float xmultX = sin(rotation.y);
+    float zmultX = cos(rotation.y);
+    float xmultZ = sin(rotation.y-glm::radians(90.0f));
+    float zmultZ = cos(rotation.y-glm::radians(90.0f));
+    rotation.x = accelTilt * glm::radians(5.0f) * xmultX + turnTilt * glm::radians(7.0f) * xmultZ;
+    rotation.z = accelTilt * glm::radians(5.0f) * zmultX + turnTilt * glm::radians(7.0f) * zmultZ;
 
-    direction = rotationToDirection(-rotation);
+    direction = rotationToDirection(glm::vec3(0,-rotation.y,0));
     velocity = direction * speed * dt;
     body.setPosition(body.getPosition() + velocity);
     body.setOrientation(rotation);
