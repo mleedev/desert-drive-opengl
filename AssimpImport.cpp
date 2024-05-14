@@ -17,6 +17,7 @@ std::vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, c
 	{
 		aiString name;
 		mat->GetTexture(type, i, &name);
+        std::cout<<name.C_Str()<<std::endl;
         std::string correctedPath = name.C_Str();
         std::replace(correctedPath.begin(), correctedPath.end(), '\\', '/');
 

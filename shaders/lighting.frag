@@ -147,7 +147,7 @@ void calculatePointLight(mat4 light) {
     reflect_vector = reflect(-light_direction, normal);
     cosine = dot(reflect_vector, normalize(view_vector));
     //angleDist = acos(cosine);
-    spec = pow(clamp(cosine,0,1), 15) * 2 * distanceMult;// * shininess.x;
+    spec = pow(clamp(cosine,0,1), 15) * 2 * shininess.x; // * distanceMult * shininess.x;
     //if (cosine < 0) {
     //    spec = 0.0;
     //}
@@ -168,7 +168,7 @@ void calculatePointLight(mat4 light) {
         } else {
             //diffuseIntensity = diffuseIntensity * (1-distanceMult);
             diffuseIntensity = 1.0f;
-            cosine = pow(1-clamp(angleDist/radians(lCutoffAngle),0,1),2);
+            cosine = pow(1-clamp(angleDist/radians(lCutoffAngle),0,1),1);
             spec = spec * cosine;
             light_intensity = vec3(cosine * distanceMult);//vec3(clamp(pow(cosAngle - cosCutoff, 2),0,1)) *
             // If the fragment is outside the light's cone, return 0

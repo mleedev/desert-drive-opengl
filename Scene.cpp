@@ -10,7 +10,11 @@ Scene Scene::jeep() {
     jeep.move(glm::vec3(0, -1.2, 0));
     jeep.grow(glm::vec3(0.004, 0.004, 0.004));
 
-    std::vector<Texture> groundtex = {Texture::loadTexture("../models/concrete.png","baseTexture")};
+    auto cactus = assimpLoad("../models/desert/Cactus.fbx", true);
+    cactus.move(glm::vec3(0, -0.5, 0));
+    cactus.grow(glm::vec3(0.01, 0.01, 0.01));
+
+    std::vector<Texture> groundtex = {Texture::loadTexture("../models/concrete.png","baseTexture"),Texture::loadTexture("../models/test_specular.jpg","specMap")};
     //std::vector<Mesh3D> ground = {Mesh3D::square(groundtex)};
     Object3D map = Object3D({Mesh3D::square(groundtex)});//assimpLoad("../models/racetrack/arena.obj", true);
     map.grow(glm::vec3(100,100,100));
@@ -61,6 +65,7 @@ Scene Scene::jeep() {
     std::vector<Object3D> objects;
     objects.push_back(std::move(jeep));
     objects.push_back(std::move(lightSource));
+    objects.push_back(std::move(cactus));
     objects.push_back(std::move(map));
     objects.push_back(std::move(map2));
     std::vector<DynamicLight> lights;
