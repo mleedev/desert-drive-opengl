@@ -4,9 +4,9 @@
 #include <SFML/Window.hpp>
 
 class ShaderProgram {
-	uint32_t m_programId;
 
 public:
+    uint32_t m_programId;
 	ShaderProgram();
 	void load(const std::string& vertexShaderPath, const std::string& fragmentShaderPath);
 
@@ -36,4 +36,6 @@ public:
     void setUniform(const std::string &uniformName, uint32_t value);
 
     void RenderShadowMap();
+
+    static ShaderProgram skyShading();
 };

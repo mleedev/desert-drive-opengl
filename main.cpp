@@ -10,6 +10,7 @@ This application renders a textured mesh that was loaded with Assimp.
 #include "Scene.h"
 #include "UserInput.h"
 #include "Vehicle.h"
+#include "SkyShading.h"
 
 int main() {
 	// Initialize the window and OpenGL.
@@ -38,6 +39,13 @@ int main() {
 	mainShader.setUniform("view", camera);
     mainShader.setUniform("projection", perspective);
 
+    ShaderProgram skyShaderProgram = ShaderProgram::skyShading();
+    skyShaderProgram.setUniform("view",glm::lookAt(glm::vec3(0,0,5),glm::vec3(0,0,0),glm::vec3(0,1,0)));
+    skyShaderProgram.setUniform("projection",perspective);//glm::ortho(-1.0f,1.0f,-1.0f,1.0f,0.1f,100.0f));
+    skyShaderProgram.setUniform("sunVector",glm::vec3(0,0,1));
+    skyShaderProgram.setUniform("cameraVector",glm::vec3(0,0,-1));
+
+    int skyVBO = SkyShading::InitializeWithQuad();
     //mainShader.setUniform("ambientColor",glm::vec3(0.3,0.3,0.3));
 	// Ready, set, go!
 	for (auto& animator : scene.animators) {
@@ -103,8 +111,6 @@ int main() {
     mainShader.setUniform("shadowProjection", shadowProjection);
 
 
-
-
     auto last = c.getElapsedTime();
 	while (running) {
 		sf::Event ev;
@@ -153,11 +159,14 @@ int main() {
             scene.objects[1].setPosition(boundingCenter);
             ///
             glm::mat4 sunMatrix = sun.getLightSpaceMatrix();
+            sun.printLightSpaceMatrix();
+            std::cout<<"endmatrix \n";
             glm::vec3 sunPosition = boundingCenter - glm::vec3(sunMatrix[3])*boundingRadius;
             glm::vec3 sunLookat = boundingCenter; //+ glm::direc;
             glm::mat4 lightView = glm::lookAt(sunPosition, sunLookat, glm::vec3(0,1,0));
             glm::mat4 lightSpaceMatrix = shadowProjection * lightView;//lightProjection * lightView;
             mainShader.setUniform("LightSpaceMatrix",lightSpaceMatrix);
+            //skyShaderProgram.setUniform("sunVector",cameraPosition - glm::vec3(sunMatrix[3]));
             //mainShader.ShadowMapComplete();
             mainShader.setUniform("view", lightView);
             //mainShader.setUniform("viewPos", glm::lookAt(glm::vec3(0, 5, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, -1)));
@@ -181,8 +190,12 @@ int main() {
         //mainShader.setUniform("viewPos", cameraPosition);
         //mainShader.setUniform("projection", perspective);
         mainShader.setUniform("includeLighting",true);
-		// Render each object in the scene.
-		for (auto& o : scene.objects) {
+        //skyShaderProgram.setUniform("cameraVector",-glm::vec3(camera[0][2], camera[1][2], camera[2][2]));
+        skyShaderProgram.setUniform("viewMatrix",camera);
+        // your camera matrix
+         // Render each object in the scene.
+        SkyShading::RenderSky(skyVBO, mainShader,skyShaderProgram);
+        for (auto& o : scene.objects) {
 			o.render(window, mainShader);
 		}
 		window.display();

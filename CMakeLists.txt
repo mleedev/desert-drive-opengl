@@ -19,6 +19,8 @@ add_executable(mattsquared_graphics
         UserInput.h
         Vehicle.cpp
         Vehicle.h
+        SkyShading.cpp
+        SkyShading.h
 )
 
 find_package(SFML COMPONENTS system window REQUIRED)

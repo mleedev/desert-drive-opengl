@@ -206,6 +206,18 @@ ShaderProgram ShaderProgram::phongLighting() {
     return program;
 }
 
+ShaderProgram ShaderProgram::skyShading() {
+    ShaderProgram program;
+    try {
+        program.load("../shaders/no_transform.vert", "../shaders/colors.frag");
+        std::cout << "Sky shader loaded!" << std::endl;
+    }
+    catch (std::runtime_error& e) {
+        std::cout << "ERROR: " << e.what() << std::endl;
+        exit(1);
+    }
+    return program;
+}
 /**
  * @brief Constructs a shader program that renders textured meshes without lighting.
  */
@@ -218,5 +230,5 @@ ShaderProgram ShaderProgram::textureMapping() {
         std::cout << "ERROR: " << e.what() << std::endl;
         exit(1);
     }
-    return program;
+    return std::move(program);
 }

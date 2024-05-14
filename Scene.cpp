@@ -37,7 +37,7 @@ Scene Scene::jeep() {
             0,0 ,0,0, //Position (Direction for directional lights);
             1,1,1,0, //Color
             1,1,10,0, //LightType, Range, Cuttoff Angle (For spotlights)
-            0.5,-0.5,0.1,0 //LookAt (For spotlights and directionalLights)
+            0.5,-0.5,0,0 //LookAt (For spotlights and directionalLights)
     );
 
     /*glm::mat4 pointLight = glm::mat4(
