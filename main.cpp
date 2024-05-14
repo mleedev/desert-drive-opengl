@@ -156,7 +156,7 @@ int main() {
             glm::vec3 cameraDirection = -glm::vec3(camera[0][2], camera[1][2], camera[2][2]);
             cameraDirection = glm::normalize(cameraDirection);
             glm::vec3 boundingCenter = cameraPosition + cameraDirection * boundingRadius*0.8f;
-            scene.objects[1].setPosition(boundingCenter);
+            //scene.objects[1].setPosition(boundingCenter);
             ///
             glm::mat4 sunMatrix = sun.getLightSpaceMatrix();
             sun.printLightSpaceMatrix();

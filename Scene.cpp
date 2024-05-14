@@ -6,7 +6,18 @@
 
 
 Scene Scene::jeep() {
-    auto jeep = assimpLoad("../models/mil_jeep_fbx/mil_jeep.fbx", true);
+    auto jeep = assimpLoad("../models/mil_jeep_fbx/chassis.fbx", true);
+
+    jeep.addChild(assimpLoad("../models/mil_jeep_fbx/b_l_tire_centered.fbx", true));
+    jeep.addChild(assimpLoad("../models/mil_jeep_fbx/b_r_tire_centered.fbx", true));
+    jeep.addChild(assimpLoad("../models/mil_jeep_fbx/f_l_tire_centered.fbx", true));
+    jeep.addChild(assimpLoad("../models/mil_jeep_fbx/f_r_tire_centered.fbx", true));
+
+    jeep.getChild(2).move(glm::vec3(-295.31, 166.564, -142.697));
+    jeep.getChild(3).move(glm::vec3(-295.31, 166.564, 142.697));
+    jeep.getChild(4).move(glm::vec3(329.379, 170.609, -142.697));
+    jeep.getChild(5).move(glm::vec3(329.379, 170.609, 142.697));
+
     jeep.move(glm::vec3(0, -1.2, 0));
     jeep.grow(glm::vec3(0.004, 0.004, 0.004));
 

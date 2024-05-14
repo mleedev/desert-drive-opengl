@@ -53,9 +53,9 @@ glm::vec3 rotationToDirection(const glm::vec3& rotation) {
 }
 
 float getGearMult(float sp) {
-    float perc = sp/maxSpeed;
-    if (perc < 0.05) {
-        return 2.0f;
+    float perc = abs(sp/maxSpeed);
+    if (perc < 0.1) {
+        return 0.5 + (perc/0.1)* 1.5;
     } else if (perc < 0.25) {
         return 1.5f;
     } else if (perc < 0.5) {
@@ -69,7 +69,7 @@ float getGearMult(float sp) {
 
 void Vehicle::accelerate(float dt) {
     float gearMult = getGearMult(speed);
-    accelPower = gearMult;
+    accelPower = pow(gearMult,0.5f);
     speed += acceleration * gearMult * dt;
     if (speed > maxSpeed) {
         speed = maxSpeed;
@@ -103,7 +103,7 @@ void Vehicle::deccelerate(float dt) {
 
 void Vehicle::brake(float dt) {
     deccelerate(dt*brakeMult);
-    accelPower = speed < 0.0 ? brakeMult : -brakeMult;
+    accelPower = speed < 0.0 ? 1.0 : -1.0;
 }
 
 void Vehicle::turn(float dt) {
@@ -133,6 +133,11 @@ void Vehicle::straighten(float dt) {
         }
     }
 
+}
+
+void handleSpring(float& current, float& velocity, float target, float power, float damping, float dt) {
+    velocity = (velocity + (target - current) * power * dt)*damping;
+    current = current + velocity * dt;
 }
 
 #include <glm/glm.hpp>
@@ -166,23 +171,60 @@ void Vehicle::Update(float dt) { // deltaTime
     } else if (rotation.y > glm::pi<float>()) {
         rotation.y -= 2*glm::pi<float>();
     }
-    accelTilt = accelTilt + (accelPower - accelTilt) * std::min(dt*(2.0f),1.0f);
-    turnTilt = turnTilt + (turnPower - turnTilt) * std::min(dt*(4.0f),1.0f);
+    handleSpring(accelTilt,accelVelocity, accelPower, 70.0f, 0.985f, dt);
+    handleSpring(turnTilt,turnVelocity, turnPower, 100.0f, 0.992f, dt);
+    //accelTilt = accelTilt + (accelPower - accelTilt) * std::min(dt*(2.0f),1.0f);
+    //turnTilt = turnTilt + (turnPower - turnTilt) * std::min(dt*(4.0f),1.0f);
     float xmultX = sin(rotation.y);
     float zmultX = cos(rotation.y);
     float xmultZ = sin(rotation.y-glm::radians(90.0f));
     float zmultZ = cos(rotation.y-glm::radians(90.0f));
-    rotation.x = accelTilt * glm::radians(5.0f) * xmultX + turnTilt * glm::radians(7.0f) * xmultZ;
-    rotation.z = accelTilt * glm::radians(5.0f) * zmultX + turnTilt * glm::radians(7.0f) * zmultZ;
-
+    float chassisRotationZ = accelTilt * glm::radians(4.0f); //accelTilt *
+    float chassisRotationX = -turnTilt * glm::radians(9.0f); //accelTilt *
     direction = rotationToDirection(glm::vec3(0,-rotation.y,0));
     velocity = direction * speed * dt;
     body.setPosition(body.getPosition() + velocity);
     body.setOrientation(rotation);
-    auto& leftTire = body.getChild(0);
-    leftTire.rotate(glm::vec3(0,speed/maxSpeed*0.5f,0));
+    auto& chassis = body.getChild(0);
+    chassis.setOrientation(glm::vec3(chassisRotationX,0,chassisRotationZ));
 
+    glm::vec3 frontTireRotation = glm::vec3(0,-turnSpeed/maxTurnSpeed* glm::radians(35.0f),0);
+    float frontXMult = sin(frontTireRotation.y - glm::radians(0.0f));
+    float frontZMult = cos(frontTireRotation.y - glm::radians(0.0f));
+
+    tireSpin += speed/maxSpeed * glm::radians(360.0f) * 3 * dt * 2.0f;
+
+        // Calculate the rotation matrices
+        glm::mat4 rotationX = glm::rotate(glm::mat4(1.0f), 0.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+        glm::mat4 rotationY = glm::rotate(glm::mat4(1.0f), frontTireRotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
+        glm::mat4 rotationZ = glm::rotate(glm::mat4(1.0f), -tireSpin, glm::vec3(0.0f, 0.0f, 1.0f));
+
+        // Apply the rotations in the order: X, Z, then Y
+        glm::mat4 finalRotation =  rotationY * rotationX * rotationZ;
+
+        // Extract the Euler angles from the final rotation matrix
+        glm::quat quaternion(finalRotation);
+        glm::vec3 eulerRotation = glm::eulerAngles(quaternion);
+        //glm::extractEulerAngleXYZ(finalRotation, eulerRotation.x, eulerRotation.y, eulerRotation.z);
+
+        // Set the orientation of tire2
+
+        // ... existing code ...
+    auto& tire1 = body.getChild(4);
+    tire1.setOrientation(eulerRotation);
+
+    auto& tire2 = body.getChild(5);
+    tire2.setOrientation(eulerRotation);
     frontLookat = body.getPosition() + direction * 10.0f;
+
+    auto& tire3 = body.getChild(2);
+    tire3.setOrientation(glm::vec3(0,0,-tireSpin));
+
+    auto& tire4 = body.getChild(3);
+    tire4.setOrientation(glm::vec3(0,0,-tireSpin));
+    frontLookat = body.getPosition() + direction * 10.0f;
+
+
 
     glm::vec3 rearTarget;
     float followSpeedTarget = 0;
@@ -190,13 +232,15 @@ void Vehicle::Update(float dt) { // deltaTime
         rearTarget = body.getPosition() - direction * 10.0f + glm::vec3(0,3,0);
         followSpeedTarget = 5.0f;
     } else if (userInput.cameraView == 1) {
-        rearTarget = body.getPosition() + direction * 2.0f + glm::vec3(0,1.5,0);
+        rearTarget = body.getPosition() + direction * 2.0f + glm::vec3(0,2.0,0);
+        frontLookat = frontLookat + glm::vec3(0,1.0,0);
         followSpeedTarget = 100.0f;
     } else if (userInput.cameraView == 2) {
         rearTarget = body.getPosition() - direction * 20.0f + glm::vec3(0,20,0);
         followSpeedTarget = 10.0f;
     } else if (userInput.cameraView == 3) {
         rearTarget = glm::vec3(0,0,0);//body.getPosition() + direction * 50.0f + glm::vec3(0,0,0);
+        frontLookat = body.getPosition();
         followSpeedTarget = 5.0f;
     }
 

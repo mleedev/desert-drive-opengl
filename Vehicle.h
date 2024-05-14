@@ -27,9 +27,12 @@ public:
     glm::vec3 headlightPos;
     float accelPower = 0.0f;
     float accelTilt = 0.0f;
+    float accelVelocity = 0.0f;
     float turnPower = 0.0f;
     float turnTilt = 0.0f;
+    float turnVelocity = 0.0f;
     float followSpeed = 0.0f;
+    float tireSpin = 0.0f;
     DynamicLight& headlights;
     DynamicLight& l_brakeLight;
     DynamicLight& r_brakeLight;
