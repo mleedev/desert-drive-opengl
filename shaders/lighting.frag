@@ -195,7 +195,7 @@ void main() {
             }
             calculatePointLight(lights[i]);
         }
-        FragColor = vec4(_pl_intensity * sceneBrightness, 1)  * (texture(baseTexture, TexCoord));
+        FragColor = (vec4(_pl_intensity * sceneBrightness, 1) + vec4(0.4,00.4,0.4,0.0))  * (texture(baseTexture, TexCoord));
 
         //shadowMapUV = (gl_FragCoord.xy) / vec2(width, height);
         //FragColor = texture(shadowMap,shadowMapUV)/4.0;

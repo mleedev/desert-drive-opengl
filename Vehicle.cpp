@@ -179,6 +179,8 @@ void Vehicle::Update(float dt) { // deltaTime
     velocity = direction * speed * dt;
     body.setPosition(body.getPosition() + velocity);
     body.setOrientation(rotation);
+    auto& leftTire = body.getChild(0);
+    leftTire.rotate(glm::vec3(0,speed/maxSpeed*0.5f,0));
 
     frontLookat = body.getPosition() + direction * 10.0f;
 

@@ -11,7 +11,7 @@ Scene Scene::jeep() {
     jeep.grow(glm::vec3(0.004, 0.004, 0.004));
 
     auto cactus = assimpLoad("../models/desert/Cactus.fbx", true);
-    cactus.move(glm::vec3(0, -0.5, 0));
+    cactus.move(glm::vec3(0, -0.5, 5));
     cactus.grow(glm::vec3(0.01, 0.01, 0.01));
 
     std::vector<Texture> groundtex = {Texture::loadTexture("../models/concrete.png","baseTexture"),Texture::loadTexture("../models/test_specular.jpg","specMap")};
