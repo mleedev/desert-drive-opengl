@@ -10,7 +10,7 @@ in vec3 FragWorldPos;
 in vec4 FragPosLightSpace;
 in vec3 Tangent;
 
-//uniform mat4 model;
+uniform mat4 model;
 vec3 AdjustedFragWorldPos;
 vec4 AFragPosLightSpace;
 
@@ -192,18 +192,28 @@ void calculatePointLight(mat4 light) {
     _pl_intensity = _pl_intensity + light_intensity * (diffuseIntensity + spec) * lColor; //* lColor;// + spec_factor);// + specularIntensity); //* color;
 }
 int numSteps;
+vec2 S;
+vec2 deltaUVs;
 void getHeightMap()
 {
     if (!hasHeightmap) return;
-    vec3 viewVector2 = -transpose(mat3(view))[2];
-    float dist = length(vec3(-transpose(mat3(view)) * view[3].xyz) - FragWorldPos);
-    float height = (texture(heightMap, TexCoord).r - 0.75)*4*0.1; // Get the height at the current fragment
+    vec3 viewVector2 =  -normalize(vec3(-transpose(mat3(view)) * view[3].xyz) - AdjustedFragWorldPos) ;//(CameraPos) //-transpose(mat3(view))[2];
+    //float dist = length(vec3(-transpose(mat3(view)) * view[3].xyz) - FragWorldPos);
+    float height = 1-(texture(heightMap, TexCoord).r); // Get the height at the current fragment
     newTexCoord = TexCoord; // Start with the original texture coordinates
-    numSteps = int(20 - min(dist/35.0,1.0)*15); // The number of steps to take in the ray march
+    const int numSteps = 5; // The number of steps to take in the ray march
     float currentHeight = 0.0;
+    //vec2 S = viewVector2.xy / viewVector2.z * 0.15;
+    vec2 S = vec2(0.05);
+    //const float minLayers = 9.0f;
+   // const float maxLayers = 64.0f;
+    //float numLayers = mix(maxLayers, minLayers, abs(dot(vec3(0.0f, 0.0f, 1.0f), viewDirection)));
+    vec2 deltaUVs = S/numSteps;
+    int layer = 0;
     for (int i = 0; i < numSteps; ++i)
     {
-        currentHeight = (texture(heightMap, newTexCoord).r-0.75)*4*0.1; // Get the height at the current texture coordinates
+        layer = i;
+        currentHeight = 1-(texture(heightMap, newTexCoord).r); // Get the height at the current texture coordinates
         if (currentHeight > height)
         {
             // If the current height is greater than the original height, we've hit the heightmap
@@ -211,9 +221,17 @@ void getHeightMap()
         }
 
         // Move the texture coordinates along the view vector
-        newTexCoord += (height - currentHeight) * viewVector2.xy;
+        newTexCoord -= deltaUVs*viewVector2.xz; //(height - currentHeight) * viewVector2.xy;
         //AdjustedFragWorldPos += (height - currentHeight) * viewVector;
     }
+
+    //vec2 prevTexCoord = newTexCoord + deltaUVs;
+    //vec2 prevDepth = 1.0-(texture(heightMap, prevTexCoord).r);
+    //newTexCoord = (prevTexCoord + newTexCoord) / 2.0;
+
+    //if (newTexCoord.y < 0.0 || newTexCoord.y > 1.0 || newTexCoord.x < 0.0 || newTexCoord.x > 1.0) {
+    //    discard;
+    //}
 
     AdjustedFragWorldPos = FragWorldPos + vec3(0, currentHeight, 0);
     AFragPosLightSpace = FragPosLightSpace + vec4(0, currentHeight, 0, 0);
@@ -263,11 +281,9 @@ void main() {
     parallaxTextureColor = texture(baseTexture, TexCoord);
     newTexCoord = TexCoord;
     //adjustNormal;
-    if (hasHeightmap) {
         getHeightMap();
         //adjustNormal();
         //return;
-    }
     if (!includeLighting) return;
     _pl_intensity = vec3(0.0);//Total brightness / color of the fragment
 

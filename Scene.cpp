@@ -51,7 +51,7 @@ Scene Scene::jeep() {
 
     glm::mat4 dirLight = glm::mat4(
             0,0 ,0,0, //Position (Direction for directional lights);
-            1,1,1,0, //Color
+            1,1,0.9,0, //Color
             1,1,10,0, //LightType, Range, Cuttoff Angle (For spotlights)
             0.5,-0.4,0,0 //LookAt (For spotlights and directionalLights)
     );
