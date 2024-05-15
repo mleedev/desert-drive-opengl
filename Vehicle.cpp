@@ -175,8 +175,8 @@ void Vehicle::Update(float dt) { // deltaTime
         rotation.y -= 2*glm::pi<float>();
     }
     //accelTilt -=- 1.0f*dt*(accelTilt > 0.0f ? 1 : -1);
-    //handleSpring(accelTilt,accelVelocity, accelPower, 60.0f, 0.992f, dt);
-    //handleSpring(turnTilt,turnVelocity, turnPower, 80.0f, 0.992f, dt);
+    handleSpring(accelTilt,accelVelocity, accelPower, 60.0f, 0.992f, dt);
+    handleSpring(turnTilt,turnVelocity, turnPower, 80.0f, 0.992f, dt);
     //accelTilt = accelTilt + (accelPower - accelTilt) * std::min(dt*(2.0f),1.0f);
     //turnTilt = turnTilt + (turnPower - turnTilt) * std::min(dt*(4.0f),1.0f);
     float xmultX = sin(rotation.y);
