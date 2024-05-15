@@ -21,6 +21,7 @@ add_executable(mattsquared_graphics
         Vehicle.h
         SkyShading.cpp
         SkyShading.h
+        BezierAnimation.h
 )
 
 find_package(SFML COMPONENTS system window REQUIRED)

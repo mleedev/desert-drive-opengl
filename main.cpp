@@ -127,7 +127,7 @@ int main() {
 		auto diffSeconds = diff.asSeconds();
 		last = now;
 		for (auto& animator : scene.animators) {
-			//animator.tick(diffSeconds);
+			animator.tick(diffSeconds);
 		}
         //Jeep code
         jeep.Update(diffSeconds);

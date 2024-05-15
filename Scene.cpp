@@ -2,7 +2,7 @@
 #include "AssimpImport.h"
 #include "ShaderProgram.h"
 #include "Texture.h"
-
+#include "BezierAnimation.h"
 
 
 Scene Scene::jeep() {
@@ -26,6 +26,9 @@ Scene Scene::jeep() {
     cactusMesh.addTexture(Texture::loadTexture("../models/desert/textures/tex_cactus01.png", "baseTexture"));
     cactus.move(glm::vec3(0, -0.5, 5));
     cactus.grow(glm::vec3(0.01, 0.01, 0.01));
+
+    auto bird = assimpLoad("../models/bird/duck.fbx", true);
+    bird.grow(glm::vec3(0.01, 0.01, 0.01));
 
     std::vector<Texture> groundtex = {Texture::loadTexture("../models/concrete.png","baseTexture"),Texture::loadTexture("../models/test_specular.jpg","specMap")};
     //std::vector<Mesh3D> ground = {Mesh3D::square(groundtex)};
@@ -79,6 +82,7 @@ Scene Scene::jeep() {
     objects.push_back(std::move(jeep));
     objects.push_back(std::move(lightSource));
     objects.push_back(std::move(cactus));
+    objects.push_back(std::move(bird));
     objects.push_back(std::move(map));
     objects.push_back(std::move(map2));
     std::vector<DynamicLight> lights;
@@ -90,6 +94,22 @@ Scene Scene::jeep() {
     //animJeep.addAnimation(std::make_unique<RotationAnimation>(objects[0], 10, glm::vec3(0, 5.5, 0)));
     std::vector<Animator> animators;
     //animators.push_back(std::move(animJeep));
+    Animator bezierBird;
+    std::vector<glm::vec3> controlPoints = {
+            glm::vec3(10, 0, 0),
+            glm::vec3(10, 2.7, 1.6),
+            glm::vec3(10, 0.2, 3.0),
+            glm::vec3(10, 0.7, 4.5),
+            glm::vec3(10, 0.1, 6.0),
+            glm::vec3(10, 3.2, 5.8),
+            glm::vec3(10, 3.2, 7.0),
+            glm::vec3(10, 0.8, 8.0),
+    };
+    bezierBird.addAnimation(std::make_unique<BezierAnimation>(objects[3], 3, controlPoints));
+    bezierBird.addAnimation(std::make_unique<BezierAnimation>(objects[3], 3, controlPoints));
+    bezierBird.addAnimation(std::make_unique<BezierAnimation>(objects[3], 3, controlPoints));
+    bezierBird.addAnimation(std::make_unique<BezierAnimation>(objects[3], 3, controlPoints));
+    animators.push_back(std::move(bezierBird));
 
     return Scene {
             ShaderProgram::phongLighting(),
