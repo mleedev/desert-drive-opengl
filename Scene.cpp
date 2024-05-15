@@ -127,12 +127,19 @@ Scene Scene::jeep() {
             glm::vec3(10, 0.1, 6.0),
             glm::vec3(10, 3.2, 5.8),
             glm::vec3(10, 3.2, 7.0),
-            glm::vec3(10, 0.8, 8.0),
+            glm::vec3(10, 0.8, 8.0), //
+            glm::vec3(10, 3.2, 7.0),
+            glm::vec3(10, 3.2, 5.8),
+            glm::vec3(10, 0.1, 6.0),
+            glm::vec3(10, 0.7, 4.5),
+            glm::vec3(10, 0.2, 3.0),
+            glm::vec3(10, 2.7, 1.6),
+            glm::vec3(10, 0, 0)
     };
-    bezierBird.addAnimation(std::make_unique<BezierAnimation>(objects[3], 3, controlPoints));
-    bezierBird.addAnimation(std::make_unique<BezierAnimation>(objects[3], 3, controlPoints));
-    bezierBird.addAnimation(std::make_unique<BezierAnimation>(objects[3], 3, controlPoints));
-    bezierBird.addAnimation(std::make_unique<BezierAnimation>(objects[3], 3, controlPoints));
+    bezierBird.addAnimation(std::make_unique<BezierAnimation>(objects[3], 7, controlPoints));
+    bezierBird.addAnimation(std::make_unique<BezierAnimation>(objects[3], 7, controlPoints));
+    bezierBird.addAnimation(std::make_unique<BezierAnimation>(objects[3], 7, controlPoints));
+    bezierBird.addAnimation(std::make_unique<BezierAnimation>(objects[3], 7, controlPoints));
     animators.push_back(std::move(bezierBird));
 
     return Scene {

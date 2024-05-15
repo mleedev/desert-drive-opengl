@@ -25,6 +25,8 @@ void UserInput::processInput(sf::Event event) {
             highBeams = !highBeams;
         } else if (event.key.scancode == sf::Keyboard::Scancode::V) {
             cameraView = (cameraView + 1) % 5;
+        } else if (event.key.scancode == sf::Keyboard::Scancode::N) {
+            //timeOfDay = (timeOfDay + 1)%2;
         }
 
     } else if (event.type == sf::Event::KeyReleased) {

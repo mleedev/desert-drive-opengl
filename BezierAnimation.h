@@ -24,6 +24,11 @@ void applyAnimation(float_t dt) override {
     object().setPosition(newPosition);
 }
 
+glm::vec3 calulateBezierPoint(float t) {
+    int numControlPoints = m_controlPoints.size();
+
+}
+
 glm::vec3 getBezierPoint(float t) {
     m_bezierPoints = m_controlPoints;
     while (m_bezierPoints.size() > 1) {

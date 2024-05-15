@@ -206,7 +206,7 @@ void getHeightMap()
     //vec2 S = viewVector2.xy / viewVector2.z * 0.15;
     vec2 S = vec2(0.05);
     //const float minLayers = 9.0f;
-   // const float maxLayers = 64.0f;
+   // condst float maxLayers = 64.0f;
     //float numLayers = mix(maxLayers, minLayers, abs(dot(vec3(0.0f, 0.0f, 1.0f), viewDirection)));
     vec2 deltaUVs = S/numSteps;
     int layer = 0;
