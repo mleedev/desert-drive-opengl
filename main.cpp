@@ -21,7 +21,7 @@ int main() {
     Settings.majorVersion = 4;
     Settings.minorVersion = 1;
     Settings.attributeFlags = sf::ContextSettings::Attribute::Core;
-	sf::Window window(sf::VideoMode{ 1200, 800 }, "SFML Demo", sf::Style::Resize | sf::Style::Close, Settings);
+	sf::Window window(sf::VideoMode{ 1600, 1200 }, "SFML Demo", sf::Style::Resize | sf::Style::Close, Settings);
 	gladLoadGL();
 	glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);

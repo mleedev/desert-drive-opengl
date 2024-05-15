@@ -69,7 +69,7 @@ float getGearMult(float sp) {
 
 void Vehicle::accelerate(float dt) {
     float gearMult = getGearMult(speed);
-    accelPower = pow(gearMult,0.5f);
+    accelPower = pow(gearMult,0.25f);
     speed += acceleration * gearMult * dt;
     if (speed > maxSpeed) {
         speed = maxSpeed;
@@ -103,7 +103,7 @@ void Vehicle::deccelerate(float dt) {
 
 void Vehicle::brake(float dt) {
     deccelerate(dt*brakeMult);
-    accelPower = speed < 0.0 ? 1.0 : -1.0;
+    accelPower = speed < 0.0 ? 0.8 : -0.8;
 }
 
 void Vehicle::turn(float dt) {
@@ -174,8 +174,9 @@ void Vehicle::Update(float dt) { // deltaTime
     } else if (rotation.y > glm::pi<float>()) {
         rotation.y -= 2*glm::pi<float>();
     }
-    handleSpring(accelTilt,accelVelocity, accelPower, 70.0f, 0.985f, dt);
-    handleSpring(turnTilt,turnVelocity, turnPower, 100.0f, 0.992f, dt);
+    //accelTilt -=- 1.0f*dt*(accelTilt > 0.0f ? 1 : -1);
+    //handleSpring(accelTilt,accelVelocity, accelPower, 60.0f, 0.992f, dt);
+    //handleSpring(turnTilt,turnVelocity, turnPower, 80.0f, 0.992f, dt);
     //accelTilt = accelTilt + (accelPower - accelTilt) * std::min(dt*(2.0f),1.0f);
     //turnTilt = turnTilt + (turnPower - turnTilt) * std::min(dt*(4.0f),1.0f);
     float xmultX = sin(rotation.y);

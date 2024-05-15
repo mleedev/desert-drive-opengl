@@ -53,7 +53,7 @@ Scene Scene::jeep() {
             0,0 ,0,0, //Position (Direction for directional lights);
             1,1,1,0, //Color
             1,1,10,0, //LightType, Range, Cuttoff Angle (For spotlights)
-            0.5,-0.5,0,0 //LookAt (For spotlights and directionalLights)
+            0.5,-0.4,0,0 //LookAt (For spotlights and directionalLights)
     );
 
     /*glm::mat4 pointLight = glm::mat4(
@@ -83,8 +83,32 @@ Scene Scene::jeep() {
     objects.push_back(std::move(lightSource));
     objects.push_back(std::move(cactus));
     objects.push_back(std::move(bird));
-    objects.push_back(std::move(map));
-    objects.push_back(std::move(map2));
+    //objects.push_back(std::move(map));
+    //objects.push_back(std::move(map2));
+    std::vector<Texture> groundtex2 = {
+            Texture::loadTexture("../models/desert_pbr_textures/desert-rocks1-albedo.png","baseTexture"),
+            Texture::loadTexture("../models/desert_pbr_textures/desert-rocks1-Roughness.png","specMap"),
+            Texture::loadTexture("../models/desert_pbr_textures/desert-rocks1-Height.png","heightMap"),
+            Texture::loadTexture("../models/desert_pbr_textures/desert-rocks1-Normal-ogl.png","normalMap")};
+    for (int x = -5; x < 5; x++) {
+        for (int z = -5; z < 5; z++) {
+            //,
+            //int x = 0;
+            //int z = 0;
+                   //Texture::loadTexture("/Users/matthewhalderman/Downloads/mattsquared_graphics/models/desert_pbr_textures/desert-rocks1-Roughness.png","specMap")};
+            Object3D groundPanel = Object3D({Mesh3D::square(groundtex2)});//assimpLoad("../models/racetrack/arena.obj", true);
+            groundPanel.grow(glm::vec3(10,10,10));
+            groundPanel.move(glm::vec3(x*10,-1,z*10));
+            groundPanel.rotate(glm::vec3(glm::radians(90.0f),0,0));
+            objects.push_back(std::move(groundPanel));
+
+            auto cactus = assimpLoad("../models/desert/Cactus.fbx", true);
+            float randHeight = pow((rand()%10)/10.0,2) * 3.0;
+            cactus.move(glm::vec3(x*10 - 5 + rand()%10, -0.8 - randHeight*0.2, z*10 - 5 +rand()%10));
+            cactus.grow(glm::vec3(0.0075 + 0.005*randHeight, 0.01 + 0.01 * randHeight, 0.0075 + 0.005*randHeight));
+            objects.push_back(std::move(cactus));
+        }
+    }
     std::vector<DynamicLight> lights;
     lights.push_back(std::move(DynamicLight(dirLight)));
     //lights.push_back(std::move(DynamicLight(pointLight)));

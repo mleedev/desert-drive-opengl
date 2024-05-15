@@ -8,6 +8,11 @@ in vec2 TexCoord;
 in vec3 Normal;
 in vec3 FragWorldPos;
 in vec4 FragPosLightSpace;
+in vec3 Tangent;
+
+//uniform mat4 model;
+vec3 AdjustedFragWorldPos;
+vec4 AFragPosLightSpace;
 
 // Uniforms: MUST BE PROVIDED BY THE APPLICATION.
 
@@ -16,6 +21,8 @@ uniform sampler2D baseTexture;
 uniform sampler2D specMap;
 uniform sampler2D normalMap;
 uniform sampler2D shadowMap;
+uniform sampler2D heightMap;
+uniform bool hasHeightmap;
 uniform bool includeLighting;
 
 // Material parameters for the whole mesh: k_a, k_d, k_s, shininess.
@@ -88,6 +95,10 @@ vec3 lightCoords;
 int sampleRadius = 2;
 float sampleAverageMult = 1.0/pow(sampleRadius * 2 + 1, 2);
 
+vec4 parallaxTextureColor;
+
+vec2 newTexCoord;
+
 float calculateShadow() {
     lightCoords = FragPosLightSpace.xyz / FragPosLightSpace.w;
     if (lightCoords.z <= 1.0f) {
@@ -95,16 +106,17 @@ float calculateShadow() {
         //closestDepth = texture(shadowMap, lightCoords.xy).r;
         currentDepth = lightCoords.z;
 
-        bias = max(0.001f * (lamber_factor), 0.0005f);
+        bias = max(0.005f * (lamber_factor), 0.0005f);
         //if (currentDepth > closestDepth + bias) {
         //    return 1.0f;
         //}
+        float sampleDepth;
         float shadow = 0.0;
         vec2 pixelSize = 1.0/textureSize(shadowMap, 0);
         for (int x = -sampleRadius; x <= sampleRadius; x++) {
             for (int y = -sampleRadius; y <= sampleRadius; y++) {
                 vec2 offset = vec2(x, y) * pixelSize;
-                float sampleDepth = texture(shadowMap, lightCoords.xy + offset).r;
+                sampleDepth = texture(shadowMap, lightCoords.xy + offset).r;
                 if (currentDepth > sampleDepth + bias) {
                     shadow += 1.0f;
                 }
@@ -129,7 +141,7 @@ void calculatePointLight(mat4 light) {
         distance = 0.0f;
         lRange = 10.0f;
     } else {
-        light_vector = lPosition - FragWorldPos;
+        light_vector = lPosition - AdjustedFragWorldPos;
         light_direction = normalize(light_vector);
         distance = length(light_vector);
     }
@@ -139,15 +151,15 @@ void calculatePointLight(mat4 light) {
     cosine = dot(normal, light_direction);
     angleDist = acos(cosine);
     lamber_factor = 1-pow(clamp(angleDist/radians(90.0f),0,1),2);//min(max(cosine, 0),1);
-    //float lamber_factor = min(max(cosine, 0),1);
+    //lamber_factor = min(max(cosine, 0),1);
     diffuseIntensity = lamber_factor;//vec3(lamber_factor);
 
     //Specular intensity
-    view_vector = vec3(-transpose(mat3(view)) * view[3].xyz) - FragWorldPos;
+    view_vector = vec3(-transpose(mat3(view)) * view[3].xyz) - AdjustedFragWorldPos;
     reflect_vector = reflect(-light_direction, normal);
     cosine = dot(reflect_vector, normalize(view_vector));
     //angleDist = acos(cosine);
-    spec = pow(clamp(cosine,0,1), 15) * 2 * shininess.x; // * distanceMult * shininess.x;
+    spec = pow(clamp(cosine,0,1), 15) * 4 * shininess.x; // * distanceMult * shininess.x;
     //if (cosine < 0) {
     //    spec = 0.0;
     //}
@@ -179,23 +191,96 @@ void calculatePointLight(mat4 light) {
 
     _pl_intensity = _pl_intensity + light_intensity * (diffuseIntensity + spec) * lColor; //* lColor;// + spec_factor);// + specularIntensity); //* color;
 }
+int numSteps;
+void getHeightMap()
+{
+    if (!hasHeightmap) return;
+    vec3 viewVector2 = -transpose(mat3(view))[2];
+    float dist = length(vec3(-transpose(mat3(view)) * view[3].xyz) - FragWorldPos);
+    float height = (texture(heightMap, TexCoord).r - 0.75)*4*0.1; // Get the height at the current fragment
+    newTexCoord = TexCoord; // Start with the original texture coordinates
+    numSteps = int(20 - min(dist/35.0,1.0)*15); // The number of steps to take in the ray march
+    float currentHeight = 0.0;
+    for (int i = 0; i < numSteps; ++i)
+    {
+        currentHeight = (texture(heightMap, newTexCoord).r-0.75)*4*0.1; // Get the height at the current texture coordinates
+        if (currentHeight > height)
+        {
+            // If the current height is greater than the original height, we've hit the heightmap
+            break;
+        }
 
+        // Move the texture coordinates along the view vector
+        newTexCoord += (height - currentHeight) * viewVector2.xy;
+        //AdjustedFragWorldPos += (height - currentHeight) * viewVector;
+    }
+
+    AdjustedFragWorldPos = FragWorldPos + vec3(0, currentHeight, 0);
+    AFragPosLightSpace = FragPosLightSpace + vec4(0, currentHeight, 0, 0);
+    //AdjustedFragWorldPos = FragWorldPos + vec3(0,currentHeight,0);
+    //AFragPosLightSpace = FragPosLightSpace + vec4(0,currentHeight,0,0);
+    // Sample the base texture at the new texture coordinates
+    parallaxTextureColor = texture(baseTexture, newTexCoord); //* (1-abs(height-currentHeight)*15.0);
+
+    //FragColor = baseColor;
+}
+/*
+vec3 T;
+vec3 N;
+vec3 B;
+mat3 TBN;
+vec3 worldNormal;
+
+
+void adjustNormal() {
+    // Sample the normal from the normal map
+    vec3 sampledNormal = texture(normalMap, newTexCoord).rgb;
+
+    // Convert the sampled normal from [0,1] to [-1,1]
+    sampledNormal = normalize(sampledNormal * 2.0 - 1.0);
+
+    // Calculate the TBN matrix
+    T = normalize(vec3(model * vec4(Tangent, 0.0)));
+    N = normalize(vec3(model * vec4(Normal, 0.0)));
+    B = cross(N, T);
+    TBN = mat3(T, B, N);
+
+    // Convert the sampled normal from tangent space to world space
+    worldNormal = normalize(TBN * sampledNormal);
+
+    // Use the world normal in your lighting calculations
+    normal = worldNormal;
+
+    // ... rest of your shader code ...
+}
+*/
 void main() {
     // Use the converted color as your normal.
     //newNormal = Normal;//normalize(sampledNormal * 0.5 + Normal * 0.5);
+    normal = normalize(Normal);
+    AdjustedFragWorldPos = FragWorldPos;
+    AFragPosLightSpace = FragPosLightSpace;
+    parallaxTextureColor = texture(baseTexture, TexCoord);
+    newTexCoord = TexCoord;
+    //adjustNormal;
+    if (hasHeightmap) {
+        getHeightMap();
+        //adjustNormal();
+        //return;
+    }
     if (!includeLighting) return;
     _pl_intensity = vec3(0.0);//Total brightness / color of the fragment
 
     //Light Test//
-        normal = normalize(Normal);
-        shininess = texture(specMap, TexCoord);
+        //normal = normalize(Normal);
+        shininess = texture(specMap, newTexCoord);
         for (int i = 0; i < 10; i++) {
             if (lights[i][2][0] == 0) {
                 break;
             }
             calculatePointLight(lights[i]);
         }
-        FragColor = (vec4(_pl_intensity * sceneBrightness, 1) + vec4(0.45,0.45,0.4,0.0))  * (texture(baseTexture, TexCoord));
+        FragColor = (vec4(_pl_intensity * sceneBrightness, 1) + vec4(0.45,0.45,0.4,0.0)) * parallaxTextureColor  ;//* (texture(baseTexture, TexCoord));
 
         //shadowMapUV = (gl_FragCoord.xy) / vec2(width, height);
         //FragColor = texture(shadowMap,shadowMapUV)/4.0;
