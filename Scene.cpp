@@ -22,6 +22,8 @@ Scene Scene::jeep() {
     jeep.grow(glm::vec3(0.004, 0.004, 0.004));
 
     auto cactus = assimpLoad("../models/desert/Cactus.fbx", true);
+    auto cactusMesh = cactus.getChild(0).getMesh(0);
+    cactusMesh.addTexture(Texture::loadTexture("../models/desert/textures/tex_cactus01.png", "baseTexture"));
     cactus.move(glm::vec3(0, -0.5, 5));
     cactus.grow(glm::vec3(0.01, 0.01, 0.01));
 
