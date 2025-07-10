@@ -1,5 +1,6 @@
 //
 // Created by Matthew Halderman on 5/9/24.
+// Refactored by Matthew Lee on 7/9/25.
 //
 
 #ifndef MATTSQUARED_GRAPHICS_USERINPUT_H
@@ -16,7 +17,8 @@ public:
     int cameraView = 0;
     int forwardInput = 0;
     int sideInput = 0;
-    void processInput(sf::Event event);
+    void processInput(const sf::Event::KeyPressed&);
+    void processInput(const sf::Event::KeyReleased&);
 };
 
 

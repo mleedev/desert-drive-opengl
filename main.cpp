@@ -14,14 +14,17 @@ This application renders a textured mesh that was loaded with Assimp.
 
 int main() {
 	// Initialize the window and OpenGL.
-	sf::ContextSettings Settings;
-	Settings.depthBits = 24; // Request a 24 bits depth buffer
-	Settings.stencilBits = 8;  // Request a 8 bits stencil buffer
-	Settings.antialiasingLevel = 2;  // Request 2 levels of antialiasing
-    Settings.majorVersion = 4;
-    Settings.minorVersion = 1;
-    Settings.attributeFlags = sf::ContextSettings::Attribute::Core;
-	sf::Window window(sf::VideoMode{ 1600, 1200 }, "SFML Demo", sf::Style::Resize | sf::Style::Close, Settings);
+	sf::ContextSettings settings;
+    settings.depthBits           = 24; // Request a 24 bits depth buffer
+    settings.stencilBits         = 8;  // Request a 8 bits stencil buffer
+    settings.antiAliasingLevel   = 2;  // Request 2 levels of antialiasing
+    settings.majorVersion        = 4;
+    settings.minorVersion        = 1;
+    settings.attributeFlags      = sf::ContextSettings::Attribute::Core;
+
+    sf::VideoMode mode({1200u, 800u}, 24u);
+    sf::Window window(mode, "Desert Drive", sf::State::Windowed, settings);
+
 	gladLoadGL();
 	glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
@@ -112,15 +115,16 @@ int main() {
 
 
     auto last = c.getElapsedTime();
-	while (running) {
-		sf::Event ev;
-		while (window.pollEvent(ev)) {
-			if (ev.type == sf::Event::Closed) {
-				running = false;
-			} else {
-                input.processInput(ev);
+	while (window.isOpen() && running) {
+        while (auto eventOpt = window.pollEvent()) {
+            if (eventOpt->is<sf::Event::Closed>()) {
+                running = false;
+            } else if (auto keyPress = eventOpt->getIf<sf::Event::KeyPressed>()) {
+                input.processInput(*keyPress);
+            } else if (auto keyRelease = eventOpt->getIf<sf::Event::KeyReleased>()) {
+                input.processInput(*keyRelease);
             }
-		}
+        }
 		
 		auto now = c.getElapsedTime();
 		auto diff = now - last;
