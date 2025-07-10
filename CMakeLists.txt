@@ -24,7 +24,7 @@ add_executable(mattsquared_graphics
         BezierAnimation.h
 )
 
-find_package(SFML COMPONENTS system window REQUIRED)
+find_package(SFML COMPONENTS System Window REQUIRED)
 find_package(GLM CONFIG REQUIRED)
 find_package(ASSIMP REQUIRED)
 find_package(ZLIB REQUIRED)
@@ -34,6 +34,7 @@ target_link_libraries(mattsquared_graphics ${ZLIB_LIBRARIES})
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
 target_link_libraries(mattsquared_graphics
-        sfml-system sfml-window
+        SFML::System
+        SFML::Window
         ${ASSIMP_LIBRARIES}
 )
