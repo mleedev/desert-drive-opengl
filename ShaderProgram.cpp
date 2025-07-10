@@ -210,7 +210,6 @@ ShaderProgram ShaderProgram::skyShading() {
     ShaderProgram program;
     try {
         program.load("../shaders/no_transform.vert", "../shaders/colors.frag");
-        std::cout << "Sky shader loaded!" << std::endl;
     }
     catch (std::runtime_error& e) {
         std::cout << "ERROR: " << e.what() << std::endl;
