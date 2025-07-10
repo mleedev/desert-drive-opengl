@@ -113,7 +113,7 @@ Mesh3D fromAssimpMesh(const aiMesh* mesh, const aiScene* scene, const std::files
     // DUCT TAPE the cactus texture onto the cactus model lol
     if (modelPath.filename().string() == "Cactus.fbx") {
         StbImage image;
-        std::filesystem::path texPath("../models/desert/textures/tex_cactus_01.png");
+        std::filesystem::path texPath("./models/desert/textures/tex_cactus_01.png");
         image.loadFromFile(texPath.string());
         Texture tex = Texture::loadImage(image, "baseTexture");
         textures.push_back(tex);
@@ -144,10 +144,9 @@ Object3D assimpLoad(const std::string& path, bool flipTextureCoords) {
 	const aiScene* scene = importer.ReadFile(path, options);
 
 	// If the import failed, report it
-	if (nullptr == scene) { throw std::runtime_error("Error loading assimp file "); }
-	else {
-
-	}
+	if (nullptr == scene) {
+        throw std::runtime_error("Error loading Assimp file: " + std::string(importer.GetErrorString()));
+    }
 	/*auto* mesh = scene->mMeshes[0];
 	std::vector<std::pair<std::string, sf::Image>> textures;
 
