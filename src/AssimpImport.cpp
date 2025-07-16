@@ -113,7 +113,7 @@ Mesh3D fromAssimpMesh(const aiMesh* mesh, const aiScene* scene, const std::files
     // DUCT TAPE the cactus texture onto the cactus model lol
     if (modelPath.filename().string() == "Cactus.fbx") {
         StbImage image;
-        std::filesystem::path texPath("./models/desert/textures/tex_cactus_01.png");
+        std::filesystem::path texPath("./assets/models/desert/textures/tex_cactus_01.png");
         image.loadFromFile(texPath.string());
         Texture tex = Texture::loadImage(image, "baseTexture");
         textures.push_back(tex);

@@ -197,7 +197,7 @@ void ShaderProgram::setUniform(const std::string& uniformName, const glm::mat4& 
 ShaderProgram ShaderProgram::phongLighting() {
     ShaderProgram program;
     try {
-        program.load("./shaders/light_perspective.vert", "./shaders/lighting.frag");
+        program.load("./assets/shaders/light_perspective.vert", "./assets/shaders/lighting.frag");
     }
     catch (std::runtime_error& e) {
         std::cout << "ERROR: " << e.what() << std::endl;
@@ -209,7 +209,7 @@ ShaderProgram ShaderProgram::phongLighting() {
 ShaderProgram ShaderProgram::skyShading() {
     ShaderProgram program;
     try {
-        program.load("./shaders/no_transform.vert", "./shaders/colors.frag");
+        program.load("./assets/shaders/no_transform.vert", "./assets/shaders/colors.frag");
     }
     catch (std::runtime_error& e) {
         std::cout << "ERROR: " << e.what() << std::endl;
@@ -223,7 +223,7 @@ ShaderProgram ShaderProgram::skyShading() {
 ShaderProgram ShaderProgram::textureMapping() {
     ShaderProgram program;
     try {
-        program.load("./shaders/texture_perspective.vert", "./shaders/texturing.frag");
+        program.load("./assets/shaders/texture_perspective.vert", "./assets/shaders/texturing.frag");
     }
     catch (std::runtime_error& e) {
         std::cout << "ERROR: " << e.what() << std::endl;
