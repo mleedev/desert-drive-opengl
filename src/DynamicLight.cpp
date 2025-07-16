@@ -2,7 +2,7 @@
 // Created by Matthew Halderman on 5/6/24.
 //
 
-#include "DynamicLight.h"
+#include "../include/DynamicLight.h"
 
 #include <iostream>
 #include <glm/glm.hpp>

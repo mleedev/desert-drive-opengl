@@ -2,7 +2,7 @@
 #define STB_IMAGE_H
 
 #define STB_IMAGE_IMPLEMENTATION
-#include <string>
+#include "../../../../../../Library/Developer/CommandLineTools/SDKs/MacOSX15.5.sdk/usr/include/c++/v1/string"
 
 class StbImage
 {

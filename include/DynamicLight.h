@@ -6,7 +6,7 @@
 #define MATTSQUARED_GRAPHICS_DYNAMICLIGHT_H
 
 
-#include <glm/glm.hpp>
+#include "../../../../../../opt/homebrew/include/glm/glm.hpp"
 #include "ShaderProgram.h"
 
 class DynamicLight {

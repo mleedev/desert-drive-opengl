@@ -2,8 +2,8 @@
 
 #include <string>
 #include <iostream>
-#include "stb_image.h"
-#include "StbImage.h"
+#include "../include/stb_image.h"
+#include "../include/StbImage.h"
 
 StbImage::StbImage()
 {

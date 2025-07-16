@@ -1,8 +1,8 @@
-#include "Scene.h"
-#include "AssimpImport.h"
-#include "ShaderProgram.h"
-#include "Texture.h"
-#include "BezierAnimation.h"
+#include "../include/Scene.h"
+#include "../include/AssimpImport.h"
+#include "../include/ShaderProgram.h"
+#include "../include/Texture.h"
+#include "../include/BezierAnimation.h"
 
 
 Scene Scene::jeep() {

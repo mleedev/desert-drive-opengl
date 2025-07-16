@@ -6,7 +6,7 @@
 #define MATTSQUARED_GRAPHICS_VEHICLE_H
 
 
-#include <memory>
+#include "../../../../../../Library/Developer/CommandLineTools/SDKs/MacOSX15.5.sdk/usr/include/c++/v1/memory"
 #include "Object3D.h"
 #include "UserInput.h"
 #include "DynamicLight.h"

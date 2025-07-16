@@ -3,7 +3,7 @@
 // Refactored by Matthew Lee on 7/9/25.
 //
 #include <SFML/Window/Event.hpp>
-#include "UserInput.h"
+#include "../include/UserInput.h"
 void UserInput::processInput(const sf::Event::KeyPressed& e) {
     if (e.scancode == sf::Keyboard::Scancode::W) {
         // Forward

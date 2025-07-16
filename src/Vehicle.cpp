@@ -3,8 +3,8 @@
 //
 
 #include <iostream>
-#include "Vehicle.h"
-#include "Object3D.h"
+#include "../include/Vehicle.h"
+#include "../include/Object3D.h"
 
 const float maxTurnSpeed = 80.0f;
 const float turnAcceleration = 320.0f;
