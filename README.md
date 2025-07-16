@@ -36,14 +36,14 @@ These dependencies are required to build the project on any supported OS:
 
 ### Prerequisites
 
-| Tool/Library | Purpose                  | Install With                        | Website                                    |
-|--------------|--------------------------|-------------------------------------|--------------------------------------------|
-| Xcode CLT    | Compiler/Build tools      | `xcode-select --install`            | [developer.apple.com/xcode](https://developer.apple.com/xcode/) |
-| Homebrew     | Package manager           | `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"` | [brew.sh](https://brew.sh/)                |
-| CMake        | Build system generator    | `brew install cmake`                | [cmake.org](https://cmake.org/)            |
-| SFML         | Graphics library          | `brew install sfml`                 | [sfml-dev.org](https://www.sfml-dev.org/)  |
-| GLM          | Math library              | `brew install glm`                  | [glm.g-truc.net](https://glm.g-truc.net/)  |
-| Assimp       | Model import library      | `brew install assimp`               | [assimp.org](https://www.assimp.org/)      |
+| Tool/Library | Purpose                  | Website                                                         |
+|--------------|--------------------------|-----------------------------------------------------------------|
+| Xcode CLT    | Compiler/Build tools      | [developer.apple.com/xcode](https://developer.apple.com/xcode/) |
+| Homebrew     | Package manager           | [brew.sh](https://brew.sh/)                                     |
+| CMake        | Build system generator    | [cmake.org](https://cmake.org/)                                 |
+| SFML         | Graphics library          | [sfml-dev.org](https://www.sfml-dev.org/)                       |
+| GLM          | Math library              | [glm.g-truc.net](https://glm.g-truc.net/)                       |
+| Assimp       | Model import library      | [assimp.org](https://www.assimp.org/)                           |
 
 ### Build & Run
 
