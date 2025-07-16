@@ -3,38 +3,40 @@ project(mattsquared_graphics)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(mattsquared_graphics
-        main.cpp
-        glad.c
-        Mesh3D.cpp
-        Object3D.cpp
-        ShaderProgram.cpp
-        AssimpImport.cpp
-        StbImage.cpp
-        Animator.cpp
-        Scene.cpp
-        DynamicLight.cpp
-        DynamicLight.h
-        UserInput.cpp
-        UserInput.h
-        Vehicle.cpp
-        Vehicle.h
-        SkyShading.cpp
-        SkyShading.h
-        BezierAnimation.h
+add_executable(mattsquared_graphics)
+
+target_sources(mattsquared_graphics PRIVATE
+        src/main.cpp
+        src/glad.c
+        src/Mesh3D.cpp
+        src/Object3D.cpp
+        src/ShaderProgram.cpp
+        src/AssimpImport.cpp
+        src/StbImage.cpp
+        src/Animator.cpp
+        src/Scene.cpp
+        src/DynamicLight.cpp
+        src/UserInput.cpp
+        src/Vehicle.cpp
+        src/SkyShading.cpp
+
+        include/BezierAnimation.h
+        include/DynamicLight.h
+        include/SkyShading.h
+        include/UserInput.h
+        include/Vehicle.h
 )
+
+target_include_directories(mattsquared_graphics PRIVATE ${CMAKE_SOURCE_DIR}/include)
 
 find_package(SFML COMPONENTS System Window REQUIRED)
 find_package(GLM CONFIG REQUIRED)
 find_package(ASSIMP REQUIRED)
 find_package(ZLIB REQUIRED)
-include_directories(${ZLIB_INCLUDE_DIRS})
-target_link_libraries(mattsquared_graphics ${ZLIB_LIBRARIES})
-
-include_directories(${CMAKE_SOURCE_DIR}/include)
 
 target_link_libraries(mattsquared_graphics
         SFML::System
         SFML::Window
         ${ASSIMP_LIBRARIES}
+        ZLIB::ZLIB
 )
